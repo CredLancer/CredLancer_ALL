@@ -3,16 +3,17 @@ import { PrismaClient, OrgType } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.freelancer.deleteMany();
-  await prisma.org.deleteMany();
-  await prisma.quest.deleteMany();
   await prisma.proposal.deleteMany();
+  await prisma.freelancer.deleteMany();
+  await prisma.quest.deleteMany();
+  await prisma.org.deleteMany();
 
   const freelancers = [
     {
       name: 'John Doe',
       address: '0x1234567890123456789012345678901234567890',
       skills: ['JavaScript', 'TypeScript', 'React', 'Node.js'],
+      nonce: 'DGVOCDSD-JTMVSRAN-FZSEMJGC-LKXHYPON',
     },
   ];
 
@@ -25,6 +26,7 @@ async function main() {
     {
       name: 'Org 1',
       type: OrgType.EMPLOYER,
+      admin: '0x48D185bc646534597E25199dd4d73692ebD98BAc',
     },
   ];
 

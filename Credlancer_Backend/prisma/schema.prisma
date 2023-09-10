@@ -11,35 +11,59 @@ datasource db {
 }
 
 model Freelancer {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
-  address         String     @unique
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  address         String       @unique
   name            String?
+  imageCID        String? // IPFS CID of the freelancer's profile image
+  description     String? // Description of the freelancer
   skills          String[] // Array of skills, can be refined further
   credentials     String[] // Array of digital credentials, can be refined further
   bio             String?
-  questIDs        String[]   @db.ObjectId // Array of quest IDs that the freelancer has completed
-  completedQuests Quest[]    @relation(fields: [questIDs], references: [id])
+  questIDs        String[]     @db.ObjectId // Array of quest IDs that the freelancer has completed
+  completedQuests Quest[]      @relation(fields: [questIDs], references: [id])
   proposals       Proposal[]
+  Credential      Credential[]
+  registered      Boolean      @default(false)
+  nonce           String
+}
+
+enum QuestStatus {
+  Open
+  Closed
+  Awarded
 }
 
 model Quest {
   id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  status        QuestStatus  @default(Open)
   title         String
   description   String
+  value         String?
+  questCID      String? // IPFS CID of the quest file
+  deadline      DateTime?
   reward        Float // Reward for completing the quest, can be monetary or otherwise
   employerId    String       @db.ObjectId // Reference to the organization or employer posting the quest
   employer      Org          @relation(fields: [employerId], references: [id])
   freelancerIDs String[]     @db.ObjectId // Array of freelancer IDs that have completed the quest
   freelancers   Freelancer[] @relation(fields: [freelancerIDs], references: [id])
   proposals     Proposal[]
+  Credential    Credential[]
 }
 
 model Org {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  type           OrgType  @default(EMPLOYER) // Either 'EMPLOYER' or 'EDUCATIONAL_INSTITUTION'
-  quests         Quest[] // Quests or jobs posted by this organization
-  certifications String[] // Only relevant if type is 'EDUCATIONAL_INSTITUTION'
+  id                       String                     @id @default(auto()) @map("_id") @db.ObjectId
+  admin                    String                     @unique // Address of the admin of the organization
+  name                     String
+  imageURL                 String? // URL of the organization's profile image
+  imageCID                 String? // IPFS CID of the organization's profile image
+  description              String? // Description of the organization
+  videoCID                 String? // IPFS CID of the organization's video
+  website                  String? // Website of the organization
+  email                    String? // Email of the organization
+  OrganizationDetailUpdate OrganizationDetailUpdate[]
+  type                     OrgType                    @default(EMPLOYER) // Either 'EMPLOYER' or 'EDUCATIONAL_INSTITUTION'
+  quests                   Quest[] // Quests or jobs posted by this organization
+  certifications           String[] // Only relevant if type is 'EDUCATIONAL_INSTITUTION'
 }
 
 enum OrgType {
@@ -47,20 +71,118 @@ enum OrgType {
   EDUCATIONAL_INSTITUTION
 }
 
+model OrganizationDetailUpdate {
+  id               String                       @id @default(auto()) @map("_id") @db.ObjectId
+  transactionHash  String                       @unique
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+  type             OrganizationDetailUpdateType
+  from             String
+  to               String
+  orgId            String                       @db.ObjectId
+  org              Org                          @relation(fields: [orgId], references: [id])
+}
+
+enum OrganizationDetailUpdateType {
+  AdminChange
+  NameChange
+  ImageCIDChange
+}
+
 model Proposal {
-  id           String         @id @default(auto()) @map("_id") @db.ObjectId
-  content      String // The content or details of the proposal
-  freelancerId String         @db.ObjectId
-  freelancer   Freelancer     @relation(fields: [freelancerId], references: [id])
-  questId      String         @db.ObjectId
-  quest        Quest          @relation(fields: [questId], references: [id])
-  status       ProposalStatus @default(PENDING)
-  fileCID      String? // IPFS CID of the proposal file
-  workCID      String? // IPFS CID of the work file
+  id                    String                  @id @default(auto()) @map("_id") @db.ObjectId
+  content               String // The content or details of the proposal
+  freelancerId          String                  @db.ObjectId
+  freelancer            Freelancer              @relation(fields: [freelancerId], references: [id])
+  questId               String                  @db.ObjectId
+  quest                 Quest                   @relation(fields: [questId], references: [id])
+  status                ProposalStatus          @default(Proposed)
+  fileCID               String? // IPFS CID of the proposal file
+  workCID               String? // IPFS CID of the work file
+  WorkSubmission        WorkSubmission[]
+  ProposalStatusChanged ProposalStatusChanged[]
 }
 
 enum ProposalStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
+  Proposed
+  Accepted
+  Rejected
+  Awarded
+}
+
+model Skill {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  questIDs   String[]    @db.ObjectId
+  QuestFiles QuestFile[] @relation(fields: [questIDs], references: [id])
+}
+
+model QuestFile {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  cid         String   @unique
+  title       String
+  description String
+  skillIDs    String[] @db.ObjectId
+  skills      Skill[]  @relation(fields: [skillIDs], references: [id])
+}
+
+model ProposalFile {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  cid                  String   @unique
+  description          String
+  approxCompletionTime DateTime
+}
+
+model Signature {
+  nonce     BigInt        @id @map("_id")
+  user      String
+  signature String
+  type      SignatureType
+}
+
+enum SignatureType {
+  OrganizationCreation
+  OrganizationImageCIDChange
+  QuestCreation
+  ProposalCreation
+  WorkSubmission
+}
+
+model WorkSubmission {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  proposalId       String   @db.ObjectId
+  proposal         Proposal @relation(fields: [proposalId], references: [id])
+  fileCID          String? // IPFS CID of the work file
+  feedback         String?
+  rating           Int?
+  transactionHash  String   @unique
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+}
+
+model ProposalStatusChanged {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  proposalId       String         @db.ObjectId
+  proposal         Proposal       @relation(fields: [proposalId], references: [id])
+  status           ProposalStatus
+  transactionHash  String         @unique
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+}
+
+model Credential {
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  transactionHash  String     @unique
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+  title            String?
+  description      String?
+  freelancerId     String     @db.ObjectId
+  freelancer       Freelancer @relation(fields: [freelancerId], references: [id])
+  questId          String     @db.ObjectId
+  quest            Quest      @relation(fields: [questId], references: [id])
 }

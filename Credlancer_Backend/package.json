@@ -10,23 +10,27 @@
     "generate": "prisma generate",
     "studio": "prisma studio",
     "watch": "npx tsc --watch",
-    "seed": "prisma db seed"
+    "seed": "npx prisma db seed"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@lighthouse-web3/sdk": "^0.2.7",
     "@prisma/client": "^5.2.0",
     "cids": "^1.1.9",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "ethers": "^6.7.1",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
-    "joi": "^17.10.1"
+    "joi": "^17.10.1",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.14",
     "@types/express": "^4.17.17",
+    "@types/multer": "^1.4.7",
     "@types/node": "^20.6.0",
     "concurrently": "^8.2.1",
     "nodemon": "^3.0.1",

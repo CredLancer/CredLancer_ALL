@@ -62,7 +62,7 @@ proposalRouter.put('/:id/approve', async (req, res) => {
   try {
     const proposal = await prisma.proposal.update({
       where: { id: id },
-      data: { status: 'ACCEPTED' },
+      data: { status: 'Accepted' },
     });
     res.json(proposal);
   } catch (error) {
