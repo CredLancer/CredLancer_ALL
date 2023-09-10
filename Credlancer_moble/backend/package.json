@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+    "dev:js": "nodemon -q dist/index.js",
+    "migrate": "prisma migrate dev --name init",
+    "generate": "prisma generate",
+    "studio": "prisma studio",
+    "watch": "npx tsc --watch"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.14",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^18.11.9",
+    "concurrently": "^7.6.0",
+    "nodemon": "^2.0.20",
+    "prisma": "^4.6.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@epnsproject/backend-sdk-staging": "^2.0.3",
+    "@lighthouse-web3/sdk": "^0.1.12",
+    "@prisma/client": "4.9.0",
+    "cids": "^1.1.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.7.2",
+    "express": "^4.18.2",
+    "express-validator": "^6.14.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^3.1.0"
+  }
+}

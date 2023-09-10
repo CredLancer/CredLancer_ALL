@@ -1,0 +1,38 @@
+export const leaderBoardLancers = [
+    {
+      id: '1',
+      name: 'Christian Nwamba',
+      handle: '@christian',
+      avatarUrl: 'https://gateway.lighthouse.storage/ipfs/QmTg1hXZVvjWDHw37UJxdRkAMmprQzYqq7rhE1bYopcNyr',
+      status: 'active',
+      role: 'Senior Developer Advocate',
+      rating: 4,
+    },
+    {
+      id: '2',
+      name: 'Kent C. Dodds',
+      handle: '@kent',
+      avatarUrl: 'https://gateway.lighthouse.storage/ipfs/QmTg1hXZVvjWDHw37UJxdRkAMmprQzYqq7rhE1bYopcNyr',
+      status: 'active',
+      role: 'Director of DX',
+      rating: 4,
+    },
+    {
+      id: '3',
+      name: 'Prosper Otemuyiwa',
+      handle: '@prosper',
+      avatarUrl: 'https://gateway.lighthouse.storage/ipfs/QmTg1hXZVvjWDHw37UJxdRkAMmprQzYqq7rhE1bYopcNyr',
+      status: 'active',
+      role: 'Director of Evangelism',
+      rating: 4,
+    },
+    {
+      id: '4',
+      name: 'Ryan Florence',
+      handle: '@ryan',
+      avatarUrl: 'https://gateway.lighthouse.storage/ipfs/QmTg1hXZVvjWDHw37UJxdRkAMmprQzYqq7rhE1bYopcNyr',
+      status: 'active',
+      role: 'Co-Founder',
+      rating: 4,
+    },
+  ]
