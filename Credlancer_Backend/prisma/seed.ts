@@ -3,9 +3,10 @@ import { PrismaClient, OrgType } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // await prisma.user.deleteMany();
-  // await prisma.post.deleteMany();
   await prisma.freelancer.deleteMany();
+  await prisma.org.deleteMany();
+  await prisma.quest.deleteMany();
+  await prisma.proposal.deleteMany();
 
   const freelancers = [
     {
@@ -31,6 +32,33 @@ async function main() {
     data: orgs[0],
   });
   console.log({ result2 });
+
+  const quests = [
+    {
+      title: 'Quest 1',
+      description: 'Quest 1 description',
+      reward: 100,
+      employerId: result2.id,
+    },
+  ];
+
+  const result3 = await prisma.quest.create({
+    data: quests[0],
+  });
+  console.log({ result3 });
+
+  const proposals = [
+    {
+      content: 'Proposal 1',
+      freelancerId: result.id,
+      questId: result3.id,
+    },
+  ];
+
+  const result4 = await prisma.proposal.create({
+    data: proposals[0],
+  });
+  console.log({ result4 });
 }
 main()
   .catch((e) => console.error(e))

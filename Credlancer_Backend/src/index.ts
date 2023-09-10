@@ -3,6 +3,8 @@ import { PORT } from './config';
 import cors from 'cors';
 import freelancerRouter from './routes/freelancer';
 import orgRouter from './routes/org';
+import questRouter from './routes/quest';
+import proposalRouter from './routes/proposal';
 
 const app = express();
 
@@ -15,5 +17,7 @@ app.get('/', (req, res) => {
 
 app.use('/freelancers', freelancerRouter);
 app.use('/organizations', orgRouter);
+app.use('/quests', questRouter);
+app.use('/proposals', proposalRouter);
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
