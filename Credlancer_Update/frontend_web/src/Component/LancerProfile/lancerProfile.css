@@ -1,0 +1,21 @@
+.Background {
+    background-image: linear-gradient(180deg, #71DCCC 17.12%, #E7E7E7 36.3%, #E7E7E7 69.48%, #71DCCC 100%);
+    background-repeat: no-repeat;
+    background-position: center;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    height: Hug(2905px);
+    width: 100%;
+}
+
+.mainContainer {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    text-align: center;
+    overflow: hidden;
+}
