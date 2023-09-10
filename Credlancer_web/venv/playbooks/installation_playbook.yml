@@ -1,0 +1,90 @@
+---
+- name: Configure Credlancer environment
+  hosts: localhost
+  become: no
+
+  tasks:
+    - name: Update and upgrade apt packages
+      become: yes
+      apt:
+        update_cache: yes
+        upgrade: 'yes'
+
+    - name: Install development tools
+      become: yes
+      apt:
+        state: present
+        name:
+          - git
+          - nodejs
+          - npm
+
+    - name: Download Go binary
+      become: yes
+      get_url:
+        url: https://go.dev/dl/go1.18.linux-amd64.tar.gz
+        dest: /usr/local/
+        mode: '644'
+
+    - name: Extract Go binary
+      become: yes
+      command: "{{ item }}"
+      loop:
+        - tar -C /usr/local -xzf /usr/local/go1.18.linux-amd64.tar.gz
+        - rm /usr/local/go1.18.linux-amd64.tar.gz
+
+    - name: Add Go binary to PATH
+      lineinfile:
+        dest: ~/.bashrc
+        line: "{{ item }}"
+      loop:
+        - 'export GOROOT=/usr/local/go'
+        - 'export GOPATH=$HOME/go'
+        - 'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH'
+
+    - name: Setting Go Environment
+      command: /bin/bash -c 'source ~/.bashrc'
+
+    - name: Install ReactJS
+      become: yes
+      npm:
+        name: create-react-app
+        global: yes
+
+    - name: Add deadsnakes repository
+      become: yes
+      apt_repository:
+        repo: 'ppa:deadsnakes/ppa'
+
+    - name: Install Python 3.9 tools
+      become: yes
+      apt:
+        state: present
+        name:
+          - python3.9
+          - python3.9-dev
+          - python3.9-venv
+
+    - name: Install Cairo requirements
+      become: yes
+      apt:
+        state: present
+        name: libgmp3-dev
+
+    - name: Install Protostar
+      command: "{{ item }}"
+      loop:
+       - wget -L https://raw.githubusercontent.com/software-mansion/protostar/master/install.sh
+       - /bin/bash install.sh
+       - rm install.sh
+       - /bin/bash -c 'source ~/.bashrc'
+
+    - name: Create the initial virtualenv
+      command:
+        cmd: python3.9 -m venv ~/.venvs/venv-cairo
+        creates: ~/.venvs/myenv
+
+    - name: Install requirements
+      pip:
+        requirements: /vagrant/requirements.txt
+        virtualenv: ~/.venvs/venv-cairo

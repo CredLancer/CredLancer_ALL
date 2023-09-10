@@ -1,0 +1,9 @@
+.hero {
+    background-image: linear-gradient(180deg, #71DCCC 17.12%, #E7E7E7 36.3%, #E7E7E7 69.48%, #71DCCC 100%);
+    background-repeat: no-repeat;
+    background-position: center;
+    align-items: center;
+    background-size: cover;
+    height: Hug(2905px);
+    width: 100%;
+  }

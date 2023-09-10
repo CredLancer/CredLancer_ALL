@@ -1,0 +1,102 @@
+.ProfileHeading {
+    display: flex;
+    width: 100%;
+    height: Hug(1200px);
+}
+
+.SubProfileHeadiing {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    padding: 0px 25px;
+    font-size: 30px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #E8EDF6;
+}
+
+.ProfileContainer {
+        display: flex;
+    width: 90%;
+    height: Hug(1200px);
+    gap: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 50px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    background-color: #29116C;
+}
+
+.Part1 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 80%;
+    justify-content: center;
+    height: Hug(755px);
+}
+
+.descriptionPart{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    height: Hug(300px);
+    background-color: rgba(0, 255, 255, 0);
+}
+
+.ImgText {
+    display: flex;
+    flex-direction: row;
+    width: Hug(100px);
+    height: Hug(100px);
+    gap: 10px;
+}
+.videoPart {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    width: 100%;
+    height: Hug(300px);
+}
+.containerVideo {
+    display:flex;
+    width: 80%;
+    height: Hug(100px);
+    justify-content: center;
+    align-items: center ;
+    border: 7px solid rgb(2, 2, 2);
+    padding: 15px 15px 15px 15px;
+    background-color: #CE4CDF;
+}
+
+.textDesc {
+    display: flex;
+    height: 100%;
+    gap: 20px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #FFFFFF;
+    width: Hug(100px);
+    flex-direction: column;
+    align-items: flex-start ;
+    text-align: left;
+    justify-content: center;
+}
+ 
+@media screen and (max-width: 1000px) {
+    .videoPart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: Hug(300px);
+    }
+    .Part1 {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 20px;
+    }
+  }
+ 

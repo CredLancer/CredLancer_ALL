@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum SignatureType {
+  OrganizationCreation
+  OrganizationImageCIDChange
+  QuestCreation
+  ProposalCreation
+  WorkSubmission
+}
+
+model signature {
+  nonce     BigInt        @id
+  user      String
+  signature String
+  type      SignatureType
+}
+
+model Organization {
+  id                       String                     @id
+  admin                    String
+  name                     String
+  imageCID                 String
+  imageURL                 String?
+  description              String?                    @db.LongText
+  video                    String?
+  blockNumber              Int?
+  email                    String?
+  OrganizationDetailUpdate OrganizationDetailUpdate[]
+  Quest                    Quest[]
+}
+
+enum OrganizationDetailUpdateType {
+  AdminChange
+  NameChange
+  ImageCIDChange
+}
+
+model OrganizationDetailUpdate {
+  transactionHash  String
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+  type             OrganizationDetailUpdateType
+  from             String
+  to               String
+  orgId            String
+  org              Organization                 @relation(fields: [orgId], references: [id])
+
+  @@id([transactionHash, blockNumber, transactionIndex, logIndex])
+}
+
+enum QuestStatus {
+  Open
+  Closed
+  Awarded
+}
+
+enum ProposalStatus {
+  Proposed
+  Accepted
+  Rejected
+  Awarded
+}
+
+model Skill {
+  title      String      @id
+  QuestFiles QuestFile[]
+}
+
+model QuestFile {
+  cid         String  @id
+  title       String
+  description String  @db.LongText
+  skills      Skill[]
+}
+
+model ProposalFile {
+  cid                  String   @id
+  description          String   @db.LongText
+  approxCompletionTime DateTime
+}
+
+model Quest {
+  id          String       @id
+  value       String
+  status      QuestStatus  @default(Open)
+  questCID    String
+  orgId       String
+  deadline    DateTime
+  blockNumber Int
+  org         Organization @relation(fields: [orgId], references: [id])
+
+  Proposal   Proposal[]
+  Credential Credential[]
+}
+
+model Proposal {
+  id          String         @id
+  proposer    String
+  blockNumber Int
+  description String?        @db.LongText
+  fileCID     String
+  workCID     String?
+  status      ProposalStatus @default(Proposed)
+  questId     String
+  quest       Quest          @relation(fields: [questId], references: [id])
+
+  ProposalStatusChange ProposalStatusChange[]
+  WorkSubmission       WorkSubmission[]
+}
+
+model WorkSubmission {
+  transactionHash  String
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+  cid              String
+  proposalId       String
+
+  proposal Proposal @relation(fields: [proposalId], references: [id])
+
+  @@id([transactionHash, blockNumber, transactionIndex, logIndex])
+}
+
+model ProposalStatusChange {
+  transactionHash  String
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+  oldStatus        ProposalStatus
+  newStatus        ProposalStatus
+  proposalId       String
+  proposal         Proposal       @relation(fields: [proposalId], references: [id])
+
+  @@id([transactionHash, blockNumber, transactionIndex, logIndex])
+}
+
+model Lancer {
+  address     String  @id
+  nonce       String
+  imageCID    String?
+  email       String?
+  name        String?
+  description String? @db.LongText
+  registered  Boolean @default(false)
+
+  Credential Credential[]
+}
+
+model Credential {
+  id               String @id
+  holderAddress    String
+  transactionHash  String
+  blockNumber      Int
+  transactionIndex Int
+  logIndex         Int
+
+  holder Lancer @relation(fields: [holderAddress], references: [address])
+  quest  Quest  @relation(fields: [id], references: [id])
+
+  @@unique([transactionHash, blockNumber, transactionIndex, logIndex])
+}
