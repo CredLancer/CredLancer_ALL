@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Freelancer {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  address         String     @unique
+  name            String?
+  skills          String[] // Array of skills, can be refined further
+  credentials     String[] // Array of digital credentials, can be refined further
+  bio             String?
+  questIDs        String[]   @db.ObjectId // Array of quest IDs that the freelancer has completed
+  completedQuests Quest[]    @relation(fields: [questIDs], references: [id])
+  proposals       Proposal[]
+}
+
+model Quest {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String
+  reward        Float // Reward for completing the quest, can be monetary or otherwise
+  employerId    String       @db.ObjectId // Reference to the organization or employer posting the quest
+  employer      Org          @relation(fields: [employerId], references: [id])
+  freelancerIDs String[]     @db.ObjectId // Array of freelancer IDs that have completed the quest
+  freelancers   Freelancer[] @relation(fields: [freelancerIDs], references: [id])
+  proposals     Proposal[]
+}
+
+model Org {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  type           OrgType  @default(EMPLOYER) // Either 'EMPLOYER' or 'EDUCATIONAL_INSTITUTION'
+  quests         Quest[] // Quests or jobs posted by this organization
+  certifications String[] // Only relevant if type is 'EDUCATIONAL_INSTITUTION'
+}
+
+enum OrgType {
+  EMPLOYER
+  EDUCATIONAL_INSTITUTION
+}
+
+model Proposal {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  content      String // The content or details of the proposal
+  freelancerId String         @db.ObjectId
+  freelancer   Freelancer     @relation(fields: [freelancerId], references: [id])
+  questId      String         @db.ObjectId
+  quest        Quest          @relation(fields: [questId], references: [id])
+  status       ProposalStatus @default(PENDING)
+  fileCID      String? // IPFS CID of the proposal file
+  workCID      String? // IPFS CID of the work file
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
