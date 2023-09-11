@@ -1,0 +1,13 @@
+.myButton{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 8px;
+    height: 40px;
+    padding: 0 18px;
+    background-color: #1677ff;
+}
+.myButton:hover{
+    background-color: #4096ff;
+}

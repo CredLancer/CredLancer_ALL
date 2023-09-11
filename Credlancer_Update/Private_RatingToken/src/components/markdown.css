@@ -1,0 +1,16 @@
+.download {
+    color:#108CEE;
+    font-weight: 600;
+}
+.download:hover {
+    color: #45b4ff;
+}
+
+
+.copy_button {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    color:#84bf40;
+    cursor: pointer;
+}
