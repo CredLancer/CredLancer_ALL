@@ -6,7 +6,6 @@ const routes: RouteObject[] = [
         path: "/",
         element: <Transfer/>,
     },
-
 ];
 
 export default routes

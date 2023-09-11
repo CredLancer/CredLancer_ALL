@@ -80,7 +80,7 @@ export default function CustomHeader() {
         <Typography></Typography>
         {
             address ? <div style={{display:"flex",alignItems:"center"}}><WalletDropDowm text={address}/> <Button type="dashed" style={{marginLeft:"5px"}}>{balance} Aleo</Button></div> : <CustomButton
-                buttonText={"Connect Wallet"}
+                buttonText={"Connect Your Wallet"}
                 onclick={() => {
                     if (!hasWallet()) {
                         return

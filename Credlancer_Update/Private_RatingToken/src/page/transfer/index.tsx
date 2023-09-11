@@ -1,96 +1,167 @@
-import React, {useEffect, useState} from "react";
-import {Button, Input, InputNumber, Space, message, Typography} from "antd";
-import {useStore} from "../../context";
-import {transfer} from "../../api";
+import React, { useState } from "react";
+import { Button, Input, notification, Rate, Typography } from "antd";
+import { useStore } from "../../context";
+import { transfer } from "../../api";
 import ViewMarkDown from "../../components/ViewMarkDown";
 
+import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
+import { NotificationPlacement } from "antd/lib/notification/interface";
+
 export default function Transfer() {
-    const [transferData, setTransferData] = useState({
-        from: "",
-        to: "",
-        amount: "",
+  const [rateNUmber, setRate] = useState(5);
+
+  const [api, contextHolder] = notification.useNotification();
+
+  // 通知框
+  const openNotification = (placement: NotificationPlacement) => {
+    api.success({
+      message: `Submit Success!`,
+      duration: null,
+      description:
+        "Thank you for taking the time to provide your valuable feedback. Your input helps us enhance the platform and create a better experience for everyone involved!",
+      placement,
     });
-    const [state, dispatch] = useStore();
+  };
 
-    function isDisabled() {
-        return transferData.amount.trim() === "";
-    }
+  // 顶部文本
+  const desc = Desc();
+  function Desc() {
+    return `
+        
+        
+## Introducing the Anonymous Rating Survey! 
 
-    async function handleTransfer() {
-        transferData.to = "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns"
-        transferData.amount = (Number(transferData.amount)/10).toString()
-        // TODO 调用钱包的转账接口  type:transfer
-        let data = await transfer(transferData);
-        data && message.success("转账已经发送");
-    }
+We value your feedback on your experience with your employer or freelancer.  
+Please rate your overall experience on a scale of 1 to 10, considering factors like **Quality**, **Communication**, and **Speed**.
 
-    // useEffect(() => {
-    // 	if (state) {
-    // 		setTransferData({ ...transferData, from: state.currentAddress });
-    // 	}
-    // }, [state]);
+## Quality 
 
-    return (
-        <div style={{margin: "16px"}}>
-            <h1>Anonymous Rating</h1>
-            <div style={{width: "60%"}}>
-                <div style={{display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center"}}>
-                    <span style={{fontSize:"16px",fontWeight:600,minWidth:"110px"}}>Organization:</span>
-                    <div style={{paddingLeft:"16px",width:"100%"}}>
-                        <Input
-                            size={"large"}
-                            value={transferData.to}
-                            placeholder={"Organization"}
-                            onChange={e => {
-                                setTransferData({
-                                    ...transferData,
-                                    to: e.target.value,
-                                });
-                            }}
-                        />
-                    </div>
-                </div>
+The quality of assignments proposed by the employer.
 
-                <div style={{marginTop: "16px"}}></div>
-                <div style={{
-                    display:"flex",justifyContent:"center",alignContent:"center",alignItems:"center"
-                }}>
-                    <span style={{fontSize:"16px",fontWeight:600,minWidth:"110px"}}>Rating:</span>
-                    <div style={{paddingLeft:"16px",width:"100%"}}>
-                        <InputNumber
-                            controls={false}
-                            size={"large"}
-                            value={transferData.amount}
-                            placeholder={"1-10"}
-                            onChange={value => {
-                                setTransferData({
-                                    ...transferData,
-                                    amount: value || "0",
-                                });
-                            }}
-                        />
-                    </div>
+## Communication 
 
-                </div>
+The clarity of dialogue back and forth related to project requirements. 
 
-                <div style={{marginTop: "16px"}}></div>
+## Speed
+
+The speed of proposal and final project review and payout, according to agreed timeline.
+
+`;
+  }
+
+  // 顶部文本
+  const bottomdesc = BottomDesc();
+  function BottomDesc() {
+    return `
+
+
+Rest assured, your rating is completely private and confidential! Our ZK analytics leverage averages to promote accountability, while maintaining the anonymity of individual reviewers. Your specific scores will not be revealed.
+        `;
+  }
+  const [state, dispatch] = useStore();
+
+  // 评分
+  async function handleTransfer() {
+    openNotification("bottomRight");
+    await transfer({
+      to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
+      amount: ((rateNUmber * 2) / 10).toString(),
+    });
+  }
+
+  // @ts-ignore
+  return (
+    <>
+      {contextHolder}
+      <div style={{ display: "flex" }}>
+        <div style={{ margin: "16px", width: "80%", overflow: "hidden" }}>
+          <div style={{ textAlign: "left" }}>
+            <ViewMarkDown textContent={desc} darkMode={false} />
+          </div>
+          
+          <div style={{ width: "80%", paddingTop: "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{ fontSize: "16px", fontWeight: 600, minWidth: "110px" }}
+              >
+                Organization:
+              </span>
+              <div style={{ paddingLeft: "16px", width: "100%" }}>
+                <Input size={"large"} placeholder={"Organization"} />
+              </div>
             </div>
-            <div style={{width: "60%", marginTop: "16px", textAlign: "center"}}>
-                {state.walletConnected ? (
-                    <Button
-                        size={"large"}
-                        type="primary"
-                        style={{marginLeft: "8px"}}
-                        disabled={isDisabled()}
-                        onClick={handleTransfer}>
-                        Submit
-                    </Button>
-                ) : (
-                    <Button size={"large"} type="primary" disabled>
-                        Connect Your Wallet
-                    </Button>
-                )}
+
+            <div style={{ marginTop: "16px" }}></div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{ fontSize: "16px", fontWeight: 600, minWidth: "110px" }}
+              >
+                Rating:
+              </span>
+              <div
+                style={{
+                  display: "flex",
+                  alignContent: "center",
+                  justifyContent: "left",
+                  alignItems: "center",
+                  paddingLeft: "16px",
+                  width: "100%",
+                }}
+              >
+                <Rate
+                  allowHalf
+                  value={rateNUmber}
+                  onChange={(value) => {
+                    console.log(value);
+                    setRate(value);
+                  }}
+                />
+                <Typography
+                  style={{
+                    marginLeft: "32px",
+                    fontSize: "18px",
+                    textAlign: "center",
+                    marginTop: "2px",
+                  }}
+                >
+                  {rateNUmber * 2}
+                </Typography>
+              </div>
             </div>
+
+            <div style={{ marginTop: "24px" }}></div>
+          </div>
+
+          <div style={{ width: "100%", textAlign: "left" }}>
+            <ViewMarkDown textContent={bottomdesc} darkMode={false} />
+          </div>
+          <div style={{ width: "80%", marginTop: "16px", textAlign: "center" }}>
+            <Button
+              size={"large"}
+              type="primary"
+              style={{ marginLeft: "8px" }}
+              disabled={!state.walletConnected}
+              onClick={handleTransfer}
+            >
+              Submit
+            </Button>
+          </div>
         </div>
-    );
+      </div>
+    </>
+  );
 }
