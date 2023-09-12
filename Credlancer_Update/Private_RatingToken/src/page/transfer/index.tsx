@@ -1,14 +1,22 @@
 import React, { useState } from "react";
-import { Button, Input, notification, Rate, Typography } from "antd";
+import {
+  Button,
+  Input,
+  notification,
+  Rate,
+  Select,
+  SelectProps,
+  Typography,
+} from "antd";
 import { useStore } from "../../context";
-import { transfer } from "../../api";
+import { transfer, connectWalletPlugin, walletConnected } from "../../api";
 import ViewMarkDown from "../../components/ViewMarkDown";
 
-import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import { NotificationPlacement } from "antd/lib/notification/interface";
 
 export default function Transfer() {
   const [rateNUmber, setRate] = useState(5);
+  const [currentOption, setCurrentOption] = useState("Developer DAO");
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -25,6 +33,7 @@ export default function Transfer() {
 
   // 顶部文本
   const desc = Desc();
+
   function Desc() {
     return `
         
@@ -36,39 +45,62 @@ Please rate your overall experience on a scale of 1 to 10, considering factors l
 
 ## Quality 
 
-The quality of assignments proposed by the employer.
+The quality of proposed assignments.
 
 ## Communication 
 
-The clarity of dialogue back and forth related to project requirements. 
+Clarity of dialogue regarding project requirements. 
 
 ## Speed
 
-The speed of proposal and final project review and payout, according to agreed timeline.
+Promptness in proposal submission, project review, and payout according to the agreed timeline.
 
 `;
   }
 
   // 顶部文本
   const bottomdesc = BottomDesc();
+
   function BottomDesc() {
     return `
 
 
-Rest assured, your rating is completely private and confidential! Our ZK analytics leverage averages to promote accountability, while maintaining the anonymity of individual reviewers. Your specific scores will not be revealed.
+    Rest assured, your rating is completely private and confidential! 
+    Your specific scores will not be revealed to the other party.
         `;
   }
+
   const [state, dispatch] = useStore();
+  // let isConnect = walletConnected();
+  // dispatch({ type: "walletConnected", value: isConnect });
+
+  // handleConnect
+  async function handleConnect() {
+    await connectWalletPlugin();
+    let isConnect = walletConnected();
+    dispatch({ type: "walletConnected", value: isConnect });
+  }
 
   // 评分
   async function handleTransfer() {
     openNotification("bottomRight");
     await transfer({
       to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
-      amount: ((rateNUmber * 2) / 10).toString(),
+      amount: (rateNUmber).toString(),
     });
   }
 
+  const options: SelectProps["options"] = [
+    { value: "Developer DAO", label: "Developer DAO" },
+    {
+      value: "Starkware",
+      label: "Starkware",
+    },
+    {
+      value: "ACTxDesign",
+      label: "ACTxDesign",
+    },
+  ];
   // @ts-ignore
   return (
     <>
@@ -78,8 +110,32 @@ Rest assured, your rating is completely private and confidential! Our ZK analyti
           <div style={{ textAlign: "left" }}>
             <ViewMarkDown textContent={desc} darkMode={false} />
           </div>
+
+          <div
+            style={{ width: "100%", marginTop: "16px", textAlign: "center" }}
+          >
+            {state.walletConnected ? (
+              <Button
+                size={"large"}
+                type="primary"
+                style={{ marginLeft: "8px" }}
+                onClick={handleConnect}
+              >
+                Connected
+              </Button>
+            ) : (
+              <Button
+                size={"large"}
+                type="primary"
+                style={{ marginLeft: "8px" }}
+                onClick={handleConnect}
+              >
+                Survey with Aleo
+              </Button>
+            )}
+          </div>
           
-          <div style={{ width: "80%", paddingTop: "16px" }}>
+          <div style={{ width: "100%", paddingTop: "16px" }}>
             <div
               style={{
                 display: "flex",
@@ -94,7 +150,16 @@ Rest assured, your rating is completely private and confidential! Our ZK analyti
                 Organization:
               </span>
               <div style={{ paddingLeft: "16px", width: "100%" }}>
-                <Input size={"large"} placeholder={"Organization"} />
+                {/*<Input size={"large"} placeholder={"Organization"} />*/}
+                <Select
+                  size={"large"}
+                  value={currentOption}
+                  onChange={(value) => {
+                    setCurrentOption(value);
+                  }}
+                  style={{ width: 200 }}
+                  options={options}
+                />
               </div>
             </div>
 
@@ -123,33 +188,22 @@ Rest assured, your rating is completely private and confidential! Our ZK analyti
                 }}
               >
                 <Rate
-                  allowHalf
+                  count={10}
                   value={rateNUmber}
                   onChange={(value) => {
                     console.log(value);
                     setRate(value);
                   }}
                 />
-                <Typography
-                  style={{
-                    marginLeft: "32px",
-                    fontSize: "18px",
-                    textAlign: "center",
-                    marginTop: "2px",
-                  }}
-                >
-                  {rateNUmber * 2}
-                </Typography>
               </div>
             </div>
 
             <div style={{ marginTop: "24px" }}></div>
           </div>
 
-          <div style={{ width: "100%", textAlign: "left" }}>
-            <ViewMarkDown textContent={bottomdesc} darkMode={false} />
-          </div>
-          <div style={{ width: "80%", marginTop: "16px", textAlign: "center" }}>
+          <div
+            style={{ width: "100%", marginTop: "16px", textAlign: "center" }}
+          >
             <Button
               size={"large"}
               type="primary"
@@ -159,6 +213,9 @@ Rest assured, your rating is completely private and confidential! Our ZK analyti
             >
               Submit
             </Button>
+          </div>
+          <div style={{ width: "100%", textAlign: "left" }}>
+            <ViewMarkDown textContent={bottomdesc} darkMode={false} />
           </div>
         </div>
       </div>

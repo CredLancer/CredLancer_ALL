@@ -13,7 +13,7 @@ const App: React.FC = () => {
         <Layout style={{ minHeight: '100vh' }}>
             <MenuSlder/>
             <Layout>
-                <CustomHeader/>
+                {/* <CustomHeader/> */}
                 <Content style={{ margin: '0 16px' }}>
                     {element}
                 </Content>
