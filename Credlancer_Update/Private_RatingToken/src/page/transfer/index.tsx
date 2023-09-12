@@ -63,8 +63,6 @@ Promptness in proposal submission, project review, and payout according to the a
 
   function BottomDesc() {
     return `
-
-
     Rest assured, your rating is completely private and confidential! 
     Your specific scores will not be revealed to the other party.
         `;
@@ -107,10 +105,12 @@ Promptness in proposal submission, project review, and payout according to the a
       {contextHolder}
       <div style={{ display: "flex" }}>
         <div style={{ margin: "16px", width: "80%", overflow: "hidden" }}>
+          {/* 文本一 */}
           <div style={{ textAlign: "left" }}>
             <ViewMarkDown textContent={desc} darkMode={false} />
           </div>
 
+          {/* Connect Button */}
           <div
             style={{ width: "100%", marginTop: "16px", textAlign: "center" }}
           >
@@ -135,6 +135,7 @@ Promptness in proposal submission, project review, and payout according to the a
             )}
           </div>
           
+          {/* Form */}
           <div style={{ width: "100%", paddingTop: "16px" }}>
             <div
               style={{
@@ -201,6 +202,7 @@ Promptness in proposal submission, project review, and payout according to the a
             <div style={{ marginTop: "24px" }}></div>
           </div>
 
+          {/* // Submit */}
           <div
             style={{ width: "100%", marginTop: "16px", textAlign: "center" }}
           >
@@ -214,7 +216,8 @@ Promptness in proposal submission, project review, and payout according to the a
               Submit
             </Button>
           </div>
-          <div style={{ width: "100%", textAlign: "left" }}>
+
+          <div style={{ width: "100%", textAlign: "left", marginTop: "40px"}}>
             <ViewMarkDown textContent={bottomdesc} darkMode={false} />
           </div>
         </div>
