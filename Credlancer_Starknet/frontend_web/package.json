@@ -23,6 +23,7 @@
     "react-icon": "^1.0.0",
     "react-icons": "^4.7.1",
     "react-multi-carousel": "^2.8.2",
+    "react-rating-stars-component": "^2.2.0",
     "react-rounded-image": "^2.0.15",
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.1",

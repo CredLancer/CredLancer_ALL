@@ -56,3 +56,52 @@
 .row_button_group .row_active {
     background-color: #E8EDF6;
 }
+
+.title_one {
+    font-size: 13px;
+}
+
+.title-two {
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.btn_survey {
+    background-color: #4B9C9B;
+    border: solid 2px #71DCCC;
+    color: white;
+    padding: 10px 50px;
+    text-align: center;
+    margin-left: 18%;
+}
+
+.btn_developer_dao {
+    border: solid 2px #321975;
+    padding: 10px;
+}
+
+.btn_developer_startware {
+    border: solid 2px #321975;
+    padding: 10px;
+    margin-left: 20px;
+}
+
+.but_div {
+    border: solid 1px black;
+    padding: 20px 20%;
+    margin: 20px;
+    width: 60%;
+    /* padding: 0 40%; */
+    /* display: flex; */
+    /* justify-content: center; */
+}
+
+.btn_survey_submit {
+    background-color: #4B9C9B;
+    border: solid 2px #71DCCC;
+    color: white;
+    padding: 10px 50px;
+    text-align: center;
+    margin-top: 20px;
+    /* margin-left: 18%; */
+}
