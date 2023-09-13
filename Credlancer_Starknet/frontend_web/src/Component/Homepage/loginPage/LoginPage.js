@@ -5,8 +5,12 @@ import './LoginPage.css';
 import detectEthereumProvider from '@metamask/detect-provider';
 import GitHubLogin from 'react-github-login';
 import { AppContext } from '../../../AppContext';
+import {
+  useNavigate, 
+} from "react-router-dom";
 
 function LoginPage() {
+  const navigate = useNavigate();
   const { userData, setUserData } = useContext(AppContext)
 
   const handleMetamaskConnect = async () => {
@@ -16,6 +20,7 @@ function LoginPage() {
         await provider.request({ method: 'eth_requestAccounts' });
         const accounts = await provider.request({ method: 'eth_accounts' });
         setUserData({ metamask: accounts[0] })
+        navigate("/BackOffice")
       } else {
         console.error('Metamask not detected');
       }
@@ -30,6 +35,8 @@ function LoginPage() {
 
   const loginGithubSuccess = async (response) => {
     setUserData({ github: response.code})
+    navigate("/BackOffice")
+
   }
   
   console.log("userData", userData)
