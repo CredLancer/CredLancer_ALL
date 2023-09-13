@@ -3,10 +3,16 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import 'tailwindcss/tailwind.css';
 import  "./App.css" 
+import { AppContext } from "./AppContext";
+import { useState } from "react";
 
 const App = () => {
+  const[userData, setUserData] = useState(null);
+  
   return (
-    <Page></Page>
+    <AppContext.Provider value={{ userData, setUserData }}>
+      <Page />
+    </AppContext.Provider>
   )
 }
 export default App

@@ -1,0 +1,58 @@
+.Background {
+    background-image: linear-gradient(180deg, #71DCCC 17.12%, #E7E7E7 36.3%, #E7E7E7 69.48%, #71DCCC 100%);
+    background-repeat: no-repeat;
+    background-position: center;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    height: Hug(2905px);
+    width: 100%;
+}
+
+.mainContainer {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    text-align: center;
+    overflow: auto;
+}
+
+.menu_bar {
+    height: calc(100vh - 50px - 74px);
+    background-color: rgba(69, 76, 115, 0.88);
+    margin-top: 40px;
+    padding-top: 35px;
+}
+
+.menu_list {
+    text-align: center;
+    font-size: 20px;
+    padding: 15px;
+    color: #321975;
+}
+
+.menu_bar .active {
+    background-color: #4B9C9B;
+    border: solid 3px #71DCCC;
+    color: white;
+}
+
+.row_button {
+    background-color: rgba(69, 76, 115, 0.38);
+    color: #321975;
+    border: solid 2px rgba(69, 76, 115, 0.88);
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 10px;
+}
+
+.row_button_group {
+    height: calc(100vh - 85px - 78px);
+}
+
+.row_button_group .row_active {
+    background-color: #E8EDF6;
+}

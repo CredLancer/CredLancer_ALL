@@ -46,22 +46,22 @@ export const nav = [
         Img: './Images/LogoCC.svg',
         path: "/Services",
     },
-    {
-        text: "Backend",
-        issue: "developer DAO",
-        Skills: "Node Js, Next Js",
-        hours: "300",
-        Img: './Images/LogoCC.svg',
-        path: "/Services",
-    },
-    {
-        text: "Man",
-        issue: "developer DAO",
-        Skills: "Node Js, Next Js",
-        hours: "300",
-        Img: './Images/LogoCC.svg',
-        path: "/Services",
-    },
+    // {
+    //     text: "Backend",
+    //     issue: "developer DAO",
+    //     Skills: "Node Js, Next Js",
+    //     hours: "300",
+    //     Img: './Images/LogoCC.svg',
+    //     path: "/Services",
+    // },
+    // {
+    //     text: "Man",
+    //     issue: "developer DAO",
+    //     Skills: "Node Js, Next Js",
+    //     hours: "300",
+    //     Img: './Images/LogoCC.svg',
+    //     path: "/Services",
+    // },
   ]
 
   export const Questcards = [

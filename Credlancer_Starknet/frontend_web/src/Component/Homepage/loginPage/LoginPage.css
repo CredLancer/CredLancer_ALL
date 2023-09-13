@@ -1,0 +1,103 @@
+.login {
+    background-image: url("../../../../public/Images/LoginBack.svg");
+    background-size: 100%;
+    width: 100%;
+    height: 5000px;
+}
+
+.login_main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    
+    background-image: url("../../../../public/Images/Planete.svg");
+    background-size: 40% 50%;
+    background-position: bottom right;
+    background-repeat: no-repeat;
+    place-items: left;
+    align-items: flex-start;
+    text-align: center;
+    overflow: hidden;
+    padding: 0px;
+    gap : 90px;
+}
+
+.login .login_main .connect_wallet {
+    background-color: #2f2934;
+    width: 90%;
+    margin: 150px auto;
+}
+
+.login .login_main .connect_wallet .title {
+    background-color: #e1e1e1;
+    font-weight: 400;
+    font-family: 'Audiowide';
+    font-size: 22px;
+    padding-top: 10px;
+}
+
+.login .login_main .connect_wallet .wallet_connector {
+    width: 80%;
+    background-color: black;
+    margin: 100px auto;
+    border-radius: 100px;
+    padding: 40px;
+}
+
+.login .login_main .connect_wallet .wallet_connector p {
+    color: white;
+    padding-top: 20px;
+    font-size: 60px;
+}
+
+.login .login_main .connect_wallet .wallet_connector .avatar {
+    height: 200px;
+    width: 200px;
+    background-image: url("../../../../public/Images/Avatar.svg");
+    background-size: 100% 100%;
+    margin: 40px auto;
+}
+
+.userType {
+    background-color: black;
+    border: 2px solid #2f2934;
+}
+
+.userType:hover {
+    background-color: rgb(20,20,20);
+}
+
+.metamask {
+    background-color: rgb(154, 0, 232);
+}
+
+.metamask:hover {
+    background-color: rgb(174, 20, 252);
+}
+
+.github {
+    background-color: #2f2934;
+}
+
+.github:hover {
+    background-color: rgb(100,100,100);
+}
+
+.continue {
+    background-color: rgb(30,30,30);
+}
+
+.continue:hover {
+    background-color: rgb(40, 40, 40);
+}
+
+.btn {
+    border-radius: 10px;
+    color: white;
+    font-size: 35px;
+    font-family: "Arima Madurai";
+    padding: 2px 100px;
+    margin: 10px;
+    width: 30%;
+}

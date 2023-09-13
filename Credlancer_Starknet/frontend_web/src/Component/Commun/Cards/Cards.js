@@ -54,10 +54,10 @@ const Cards = (props) => {
                 <h1>{props.title}</h1>
                 <Link to={"/SeeAll"} style={{fontSize: '15px'}}>See All</Link>
             </div>
-            <div style={{margin: '0px 30px 30px 30px'}}>
-            <Slider {...settings}>
+            <div style={{margin: '0px 30px 30px 30px', display: "flex"}} className="grid grid-cols-3 gap-40">
+            {/* <Slider {...settings}> */}
                 {Data}
-            </Slider>
+            {/* </Slider> */}
             </div>
         </div>
         </>
