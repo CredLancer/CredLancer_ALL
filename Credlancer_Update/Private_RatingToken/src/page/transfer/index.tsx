@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Input,
@@ -68,12 +68,29 @@ Promptness in proposal submission, project review, and payout according to the a
         `;
   }
 
+  useEffect(() => {
+    // connectWallet()
+    // @ts-ignore
+  }, [window, window.wallet]);
+
+  /**
+   *
+   */
+  function hasWallet() {
+    // @ts-ignore
+    return window && window.wallet;
+  }
+
   const [state, dispatch] = useStore();
   // let isConnect = walletConnected();
   // dispatch({ type: "walletConnected", value: isConnect });
 
   // handleConnect
   async function handleConnect() {
+    if (!hasWallet()) {
+      window.open("https://chrome.google.com/webstore/detail/soter-aleo-wallet/kfpmpkkjaohgchlokcohbaokindffdjk", "_blank");
+      return;
+    }
     await connectWalletPlugin();
     let isConnect = walletConnected();
     dispatch({ type: "walletConnected", value: isConnect });
@@ -84,7 +101,7 @@ Promptness in proposal submission, project review, and payout according to the a
     openNotification("bottomRight");
     await transfer({
       to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
-      amount: (rateNUmber).toString(),
+      amount: rateNUmber.toString(),
     });
   }
 
@@ -134,7 +151,7 @@ Promptness in proposal submission, project review, and payout according to the a
               </Button>
             )}
           </div>
-          
+
           {/* Form */}
           <div style={{ width: "100%", paddingTop: "16px" }}>
             <div
@@ -217,7 +234,7 @@ Promptness in proposal submission, project review, and payout according to the a
             </Button>
           </div>
 
-          <div style={{ width: "100%", textAlign: "left", marginTop: "40px"}}>
+          <div style={{ width: "100%", textAlign: "left", marginTop: "40px" }}>
             <ViewMarkDown textContent={bottomdesc} darkMode={false} />
           </div>
         </div>
