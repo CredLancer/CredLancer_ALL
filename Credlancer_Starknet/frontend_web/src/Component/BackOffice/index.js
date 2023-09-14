@@ -6,20 +6,20 @@ import { cards } from "../Data/Data";
 import "../Homepage/home.css"
 import "./index.css";
 import ReactStars from "react-rating-stars-component";
-import Select from 'react-select';
+
 import toast, { Toaster } from 'react-hot-toast';
 
 const BackOfficePage = () => {
     const [selectedMenu, setSelectedMenu] = useState("My Info")
     const [selectedRowMenu, setSelectedRowMenu] = useState("Projects")
 
-    const [currentSurvey, setCurrentSurvey] = useState({ value: 'DEVELOPER DAO', label: 'DEVELOPER DAO' })
-    const options = [
-        { value: 'DEVELOPER DAO', label: 'DEVELOPER DAO' },
-        { value: 'Startware', label: 'Startware' },
-        { value: 'ACTxDesign', label: 'ACTxDesign' },
-    ];
-    const [starts, setStarts] = useState(10);
+
+    const [surveyDao, setSureyDao] = useState(false);
+    const [daoStarts, setDaoStarts] = useState(10);
+
+    const [startwareStarts, setStartwareStarts] = useState(10);
+
+    const [surveyStartware, setSureyStartware] = useState(false);
 
     const [aleoConnected, setAleoConnected] = useState(false)
 
@@ -50,10 +50,6 @@ const BackOfficePage = () => {
 
     const submitSurvey = async (stars) => {
         try {
-            if (!aleoConnected) {
-                handleAleoConnect();
-                return
-            }
             showToast()
             let params = {
                 to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
@@ -95,8 +91,6 @@ const BackOfficePage = () => {
         ))
     }
 
-
-
     return (
         <>
             <Toaster
@@ -135,50 +129,117 @@ const BackOfficePage = () => {
                                 </div>
                                 <p className="title_one">Rest assured, your rating is completely private and confidential! Your specific scores will not be revealed to the other party.</p>
                                 <br />
-                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center" }}>
-                                    <button className="btn_survey" onClick={() => handleAleoConnect()}>{aleoConnected ? " Connected " : "Survey with Aleo"}</button>
-                                </div>
 
-                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "24px" }}>
-                                    <span
-                                        style={{ fontSize: "16px", fontWeight: 600, minWidth: "140px", textAlign: "center", marginRight: "16px" }}
-                                    >
-                                        Organization:
-                                    </span>
-                                    <div style={{ minWidth: "240px" }}>
-                                        <Select
-                                            value={currentSurvey}
-                                            defaultValue={currentSurvey}
-                                            onChange={(value) => {
-                                                setCurrentSurvey(value)
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", }}>
+                                    <button className="btn_survey" style={{ backgroundColor: aleoConnected ? "#71DCCC" : "#4B9C9B" }} onClick={() => handleAleoConnect()}>{aleoConnected ? " Connected " : "Survey with Aleo"}</button>
+                                </div>
+                                {
+                                    //surveyCard  
+                                }
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center" }}>
+                                    <div className="but_div">
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignContent: "center",
+                                                alignItems: "center",
+                                                marginTop:"16px"
                                             }}
-                                            options={options}
-                                        />
+                                        >
+                                            <button className="btn_developer_dao" >DEVELOPER DAO</button>
+                                        </div>
+
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignContent: "center",
+                                            alignItems: "center",
+                                            marginTop:"24px"
+                                        }} >
+                                            <span style={{ fontSize: "16px", fontWeight: 600, minWidth: "80px" }}>
+                                                Rating:
+                                            </span>
+                                            <ReactStars
+                                                count={10}
+                                                onChange={(value) => {
+                                                    setDaoStarts(value)
+                                                }}
+                                                size={14}
+                                                value={10}
+                                                activeColor="#ffd700"
+                                            />
+                                        </div>
+
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignContent: "center",
+                                            alignItems: "center",
+                                        }} >
+                                        <button className="btn_survey_submit" style={{ backgroundColor: surveyDao ? "#71DCCC" : "#4B9C9B" }} onClick={surveyDao ? null : () => {
+                                            if (!aleoConnected) {
+                                                handleAleoConnect();
+                                                return
+                                            }
+                                            setSureyDao(true)
+                                            submitSurvey(daoStarts)
+                                        }}>{surveyDao ? "Done" : "Submit"}</button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "16px" }}>
-                                    <span
-                                        style={{ fontSize: "16px", fontWeight: 600, minWidth: "140px", textAlign: "center", marginRight: "16px" }}
-                                    >
-                                        Rating:
-                                    </span>
-                                    <div style={{ minWidth: "240px" }}>
-                                        <ReactStars
-                                            count={10}
-                                            onChange={(value) => {
-                                                setStarts(value)
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center" }}>
+                                    <div className="but_div">
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignContent: "center",
+                                                alignItems: "center",
+                                                marginTop:"16px"
                                             }}
-                                            size={14}
-                                            value={10}
-                                            activeColor="#ffd700"
-                                        />
-                                    </div>
-                                </div>
+                                        >
+                                            <button className="btn_developer_dao" >Startware</button>
+                                        </div>
 
-                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "16px" }}>
-                                    <button className="btn_survey_submit" onClick={() => submitSurvey(starts)}>Submit</button>
-                                </div>
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignContent: "center",
+                                            alignItems: "center",
+                                            marginTop:"24px"
+                                        }} >
+                                            <span style={{ fontSize: "16px", fontWeight: 600, minWidth: "80px" }}>
+                                                Rating:
+                                            </span>
+                                            <ReactStars
+                                                count={10}
+                                                onChange={(value) => {
+                                                    setStartwareStarts(value)
+                                                }}
+                                                size={14}
+                                                value={10}
+                                                activeColor="#ffd700"
+                                            />
+                                        </div>
+
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignContent: "center",
+                                            alignItems: "center",
+                                        }} >
+                                        <button className="btn_survey_submit" style={{ backgroundColor: surveyStartware ? "#71DCCC" : "#4B9C9B" }} onClick={surveyStartware ? null : () => {
+                                           if (!aleoConnected) {
+                                            handleAleoConnect();
+                                            return
+                                        }
+                                        setSureyStartware(true)
+                                        submitSurvey(startwareStarts)
+                                        }}>{surveyStartware ? "Done" : "Submit"}</button>
+                                        </div>
+                                    </div>
+                                </div> 
 
                             </div>
                         </> : <div className="mainContainer">
