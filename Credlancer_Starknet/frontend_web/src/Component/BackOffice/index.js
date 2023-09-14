@@ -6,14 +6,20 @@ import { cards } from "../Data/Data";
 import "../Homepage/home.css"
 import "./index.css";
 import ReactStars from "react-rating-stars-component";
+import Select from 'react-select';
+import toast, { Toaster } from 'react-hot-toast';
 
 const BackOfficePage = () => {
     const [selectedMenu, setSelectedMenu] = useState("My Info")
     const [selectedRowMenu, setSelectedRowMenu] = useState("Projects")
 
-    const [daoStarts, setDaoStarts] = useState(10);
-
-    const [startwareStarts, setStartwareStarts] = useState(10);
+    const [currentSurvey, setCurrentSurvey] = useState({ value: 'DEVELOPER DAO', label: 'DEVELOPER DAO' })
+    const options = [
+        { value: 'DEVELOPER DAO', label: 'DEVELOPER DAO' },
+        { value: 'Startware', label: 'Startware' },
+        { value: 'ACTxDesign', label: 'ACTxDesign' },
+    ];
+    const [starts, setStarts] = useState(10);
 
     const [aleoConnected, setAleoConnected] = useState(false)
 
@@ -48,6 +54,7 @@ const BackOfficePage = () => {
                 handleAleoConnect();
                 return
             }
+            showToast()
             let params = {
                 to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
                 amount: stars,
@@ -58,10 +65,44 @@ const BackOfficePage = () => {
         }
     }
 
+    const showToast = () => {
+        return toast.custom((t) => (
+            <div
+                className={`${t.visible ? 'animate-enter' : 'animate-leave'
+                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+            >
+                <div className="flex-1 w-0 p-4">
+                    <div className="flex items-start">
+                        <div className="ml-3 flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                                Submit Success!
+                            </p>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Thank you for taking the time to provide your valuable feedback. Your input helps us enhance the platform and create a better experience for everyone involved!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex border-l border-gray-200">
+                    <button
+                        onClick={() => toast.remove(t.id)}
+                        className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        ))
+    }
+
 
 
     return (
         <>
+            <Toaster
+                position="bottom-right"
+                reverseOrder={false}
+            />
             <Header buttonText="My.ETH" />
             <div className="Background flex flex-row" >
                 <div className="basis-1/5 menu_bar">
@@ -94,37 +135,51 @@ const BackOfficePage = () => {
                                 </div>
                                 <p className="title_one">Rest assured, your rating is completely private and confidential! Your specific scores will not be revealed to the other party.</p>
                                 <br />
-                                <button className="btn_survey" onClick={() => handleAleoConnect()}>{aleoConnected ? " Connected " : "Survey with Aleo"}</button>
-                                <div className="but_div">
-                                    <button className="btn_developer_dao">DEVELOPER DAO</button>
-                                    <p className="inline-flex align-middle mt-3">Rating:
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center" }}>
+                                    <button className="btn_survey" onClick={() => handleAleoConnect()}>{aleoConnected ? " Connected " : "Survey with Aleo"}</button>
+                                </div>
+
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "24px" }}>
+                                    <span
+                                        style={{ fontSize: "16px", fontWeight: 600, minWidth: "140px", textAlign: "center", marginRight: "16px" }}
+                                    >
+                                        Organization:
+                                    </span>
+                                    <div style={{ minWidth: "240px" }}>
+                                        <Select
+                                            value={currentSurvey}
+                                            defaultValue={currentSurvey}
+                                            onChange={(value) => {
+                                                setCurrentSurvey(value)
+                                            }}
+                                            options={options}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "16px" }}>
+                                    <span
+                                        style={{ fontSize: "16px", fontWeight: 600, minWidth: "140px", textAlign: "center", marginRight: "16px" }}
+                                    >
+                                        Rating:
+                                    </span>
+                                    <div style={{ minWidth: "240px" }}>
                                         <ReactStars
                                             count={10}
                                             onChange={(value) => {
-                                                setDaoStarts(value)
+                                                setStarts(value)
                                             }}
                                             size={14}
                                             value={10}
                                             activeColor="#ffd700"
                                         />
-                                    </p>
-                                    <button className="btn_survey_submit" onClick={() => submitSurvey(daoStarts)}>Submit</button>
+                                    </div>
                                 </div>
-                                <div className="but_div">
-                                    <button className="btn_developer_startware">Startware</button>
-                                    <p className="inline-flex align-middle mt-3">Rating:
-                                        <ReactStars
-                                            count={10}
-                                            onChange={(value) => {
-                                                setStartwareStarts(value)
-                                            }}
-                                            size={14}
-                                            value={10}
-                                            activeColor="#ffd700"
-                                        />
-                                    </p>
-                                    <button className="btn_survey_submit" onClick={() => submitSurvey(startwareStarts)}>Submit</button>
+
+                                <div style={{ display: "flex", justifyContent: "center", alignContent: "center", alignItems: "center", marginTop: "16px" }}>
+                                    <button className="btn_survey_submit" onClick={() => submitSurvey(starts)}>Submit</button>
                                 </div>
+
                             </div>
                         </> : <div className="mainContainer">
                             <Cards cards={cards} title={"Complete"} />

@@ -46,7 +46,7 @@ function LoginPage() {
       <div className='login'>
         <div className='login_main'>
           <div className='connect_wallet'>
-            <p className='title'>Connect Your Wallet</p>
+            <p className='title'>Connect Your Accounts</p>
             <div className='wallet_connector'>
               <p className='welcome'>Welcome to CredLancer</p>
               <div className='avatar'></div>
