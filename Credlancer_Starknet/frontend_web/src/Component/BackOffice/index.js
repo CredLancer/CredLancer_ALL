@@ -4,12 +4,58 @@ import Footer from "../Commun/Footer/footer";
 import Cards from "../Commun/Cards/Cards";
 import { cards } from "../Data/Data";
 import "../Homepage/home.css"
-import "./index.css";
+import "./index.css"; 
 import ReactStars from "react-rating-stars-component";
 
 const BackOfficePage = () => {
     const [selectedMenu, setSelectedMenu] = useState("My Info")
-    const [selectedRowMenu, setSelectedRowMenu] = useState("Projects")
+    const [selectedRowMenu, setSelectedRowMenu] = useState("Projects") 
+
+    const [daoStarts,setDaoStarts] = useState(10);
+
+    const [startwareStarts,setStartwareStarts] = useState(10);
+
+    const [aleoConnected,setAleoConnected] = useState(false) 
+
+     async function connectWallet() {
+        return await window.wallet.features["standard:connect"].connect();
+      }
+      
+       function walletConnected() { 
+          return window.wallet.connected
+      }
+
+    const handleAleoConnect = async () => {
+        try {
+            if(aleoConnected){
+                return
+            }
+            if(!window.wallet){
+                window.open("https://chrome.google.com/webstore/detail/soter-aleo-wallet/kfpmpkkjaohgchlokcohbaokindffdjk","_blank") 
+                return;
+            } 
+            await connectWallet();
+            setAleoConnected(walletConnected()) 
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      const submitSurvey = async (stars)=>{
+        console.log(stars);
+        try{
+            let params = {
+                to: "aleo1yr9n35r0h6gazjfhajvy73u87f6nhc24dvhwel67lykrapf8fygsqv62ns",
+                amount: stars,
+            }
+             await window.wallet.features['standard:transfer'].transfer(params);
+            }catch(error){
+                console.error(error);
+            }
+      }
+
+ 
+
     return (
         <>
         <Header buttonText="My.ETH"/>
@@ -44,34 +90,36 @@ const BackOfficePage = () => {
                             </div>
                             <p className="title_one">Rest assured, your rating is completely private and confidential! Your specific scores will not be revealed to the other party.</p>
                             <br />
-                            <button className="btn_survey">Survey with Aleo</button>
+                            <button className="btn_survey" onClick={()=>handleAleoConnect()}>{aleoConnected?" Connected ":"Survey with Aleo"}</button>
                             <div className="but_div">
                                 <button className="btn_developer_dao">DEVELOPER DAO</button>
                                 <p className="inline-flex align-middle mt-3">Rating:
                                     <ReactStars
-                                    classNames="-mt-1"
-                                        count={5}
-                                        // onChange={ratingChanged}
-                                        size={24}
-                                        value={5}
+                                        count={10}
+                                        onChange={(value)=>{
+                                            setDaoStarts(value)
+                                        }}
+                                        size={14}
+                                        value={10}
                                         activeColor="#ffd700"
                                     /> 
                                 </p>
-                                <button className="btn_survey_submit">Submit</button>
+                                <button className="btn_survey_submit" onClick={()=>submitSurvey(daoStarts)}>Submit</button>
                             </div>
                             <div className="but_div">
                                 <button className="btn_developer_startware">Startware</button>
                                 <p className="inline-flex align-middle mt-3">Rating:
                                     <ReactStars
-                                    classNames="-mt-1"
-                                        count={5}
-                                        // onChange={ratingChanged}
-                                        size={24}
-                                        value={5}
+                                        count={10}
+                                        onChange={(value)=>{
+                                            setStartwareStarts(value)
+                                        }}
+                                        size={14}
+                                        value={10}
                                         activeColor="#ffd700"
                                     /> 
                                 </p>
-                                <button className="btn_survey_submit">Submit</button>
+                                <button className="btn_survey_submit" onClick={()=>submitSurvey(startwareStarts)}>Submit</button>
                             </div>
                         </div>
                         </> : <div className="mainContainer">
