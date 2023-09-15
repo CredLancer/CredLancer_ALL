@@ -24,7 +24,7 @@ export const nav = [
   export const cards = [
     {
         text: "Web3 Dev",
-        issue: "developer DAO",
+        issue: "Developer DAO",
         hours: "100",
         Skills: "React Native, Next Js",
         Img: './Images/LogoCC.svg',
@@ -32,7 +32,7 @@ export const nav = [
     },
     {
         text: "Sr. Dev",
-        issue: "developer DAO",
+        issue: "Startware",
         Skills: "React Native, Cairo",
         hours: "150",
         Img: './Images/LogoCC.svg',
@@ -40,7 +40,7 @@ export const nav = [
     },
     {
         text: "Masters",
-        issue: "developer DAO",
+        issue: "ACTxDesign",
         Skills: "Node Js, Next Js",
         hours: "300",
         Img: './Images/LogoCC.svg',
@@ -62,6 +62,33 @@ export const nav = [
     //     Img: './Images/LogoCC.svg',
     //     path: "/Services",
     // },
+  ]
+
+  export const completecards = [
+    {
+        text: "Web3 Dev",
+        issue: "Developer DAO",
+        hours: "100",
+        Skills: "React Native, Next Js",
+        Img: './Images/dao.png',
+        path: "/",
+    },
+    {
+        text: "Sr. Dev",
+        issue: "Startware",
+        Skills: "React Native, Cairo",
+        hours: "150",
+        Img: './Images/startware.png',
+        path: "/About",
+    },
+    {
+        text: "Masters",
+        issue: "ACTxDesign",
+        Skills: "Node Js, Next Js",
+        hours: "300",
+        Img: './Images/actxdesign.png',
+        path: "/Services",
+    },
   ]
 
   export const Questcards = [

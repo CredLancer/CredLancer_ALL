@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import Header from "../Commun/Header/header";
 import Footer from "../Commun/Footer/footer";
 import Cards from "../Commun/Cards/Cards";
-import { cards } from "../Data/Data";
+
+import IconCards from "../Commun/Cards/IconCards";
+import { cards,completecards } from "../Data/Data";
 import "../Homepage/home.css"
 import "./index.css";
 import ReactStars from "react-rating-stars-component";
@@ -243,7 +245,9 @@ const BackOfficePage = () => {
 
                             </div>
                         </> : <div className="mainContainer">
+                           
                             <Cards cards={cards} title={"Complete"} />
+                            <IconCards cards={completecards} title={"Members"} />
                             <Cards cards={cards} title={"In Progress"} />
                             <Cards cards={cards} title={"Pending"} />
                         </div>
