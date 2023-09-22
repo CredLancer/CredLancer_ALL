@@ -1,4 +1,4 @@
-# credlancer_rating_survey.aleo
+# credlancer_rating_survey_v2.aleo
 
 ## Build Guide
 

@@ -3,7 +3,7 @@
 // The 'credlancer_rating_survey' program.
 
 
-program credlancer_rating_survey.aleo {
+program credlancer_rating_survey_v3.aleo {
 	// 评审项目id 列表
 	mapping surveys: field => bool;
 	// record
@@ -65,8 +65,8 @@ program credlancer_rating_survey.aleo {
 
         //确定是调用本人投票
         assert_eq(assessor_address, oldRating.master);
-		let current_survey_statistic_score:u64 = Mapping::get_or_use(survey_statistic_score, key_name, 0u64);
-		let current_survey_statistic_num:u64 = Mapping::get_or_use(survey_statistic_num, key_name, 0u64);
+		let current_survey_statistic_score:u64 = Mapping::get_or_use(survey_statistic_score, survey_id, 0u64);
+		let current_survey_statistic_num:u64 = Mapping::get_or_use(survey_statistic_num, survey_id, 0u64);
 		if oldRating.amount == 10u64 {
 			Mapping::set(survey_statistic_num,survey_id,current_survey_statistic_num+1u64);
 		}
