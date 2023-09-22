@@ -42,7 +42,7 @@ program credlancer_rating_survey.aleo {
 		};
 
 		let key_name: field = userid + survey_id;
-		return (newRating, key_name) then finalize(newRating, userid);
+		return (newRating, key_name) then finalize(newRating, key_name);
 	}
 
 	finalize add_assessor(newRating:Rating,key_name:field){
