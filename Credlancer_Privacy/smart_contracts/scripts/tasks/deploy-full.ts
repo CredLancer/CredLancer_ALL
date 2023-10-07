@@ -1,12 +1,11 @@
-import { task } from "hardhat/config";
-import { getConfig, Network, NetworkConfig } from "../networkConfig";
-import {
-  setDeploymentProperty,
-  DeploymentProperty,
-} from "../utils/deploymentManager";
-import { verifyAddress } from "../utils/utils";
 import { formatEther } from "ethers/lib/utils";
-import { HardhatUpgrades } from "@openzeppelin/hardhat-upgrades";
+import { task } from "hardhat/config";
+import { getConfig, Network, NetworkConfig } from "../../networkConfig";
+import {
+  DeploymentProperty,
+  setDeploymentProperty,
+} from "../../utils/deploymentManager";
+import { verifyAddress } from "../../utils/utils";
 
 /**
  * @notice Task created only for test purposes of the upgradable process
@@ -15,7 +14,7 @@ import { HardhatUpgrades } from "@openzeppelin/hardhat-upgrades";
 task("deploy-full", "Deploy all the contracts on their first version")
   .addFlag("useTestErc20", "deploy a mock ERC20 contract")
   .addFlag("verify", "verify contracts on etherscan")
-  .setAction(async (args, { ethers, run, network }) => {
+  .setAction(async (args, { ethers, run, network, upgrades }) => {
     try {
       const { verify, useTestErc20 } = args;
       const [deployer, bob, carol, dave] = await ethers.getSigners();
@@ -39,13 +38,14 @@ task("deploy-full", "Deploy all the contracts on their first version")
       const TalentLayerPlatformID = await ethers.getContractFactory(
         "TalentLayerPlatformID"
       );
-      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerPlatformID = await (
-        upgrades as HardhatUpgrades
-      ).deployProxy(TalentLayerPlatformID, {
-        timeout: 0,
-        pollingInterval: 20000,
-      });
+
+      const talentLayerPlatformID = await upgrades.deployProxy(
+        TalentLayerPlatformID,
+        {
+          timeout: 0,
+          pollingInterval: 20000,
+        }
+      );
 
       if (verify) {
         await verifyAddress(talentLayerPlatformID.address);
@@ -54,8 +54,7 @@ task("deploy-full", "Deploy all the contracts on their first version")
       await talentLayerPlatformID.deployTransaction.wait(1);
 
       const talentLayerPlatformIDImplementationAddress =
-        await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(
+        await upgrades.erc1967.getImplementationAddress(
           talentLayerPlatformID.address
         );
       console.log("TalentLayerPlatformID addresses:", {
@@ -72,8 +71,8 @@ task("deploy-full", "Deploy all the contracts on their first version")
       // Deploy ID contract
       const TalentLayerID = await ethers.getContractFactory("TalentLayerID");
       const talentLayerIDArgs: [string] = [talentLayerPlatformID.address];
-      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerID = await (upgrades as HardhatUpgrades).deployProxy(
+
+      const talentLayerID = await upgrades.deployProxy(
         TalentLayerID,
         talentLayerIDArgs,
         {
@@ -89,11 +88,8 @@ task("deploy-full", "Deploy all the contracts on their first version")
       }
       console.log(talentLayerID.address);
       const talentLayerIDImplementationAddress =
-        await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(
-          talentLayerID.address
-        );
-      console.log("talentLayerID addresses:", {
+        await upgrades.erc1967.getImplementationAddress(talentLayerID.address);
+      console.log("TalentLayerID addresses:", {
         proxy: talentLayerID.address,
         implementation: talentLayerIDImplementationAddress,
       });
@@ -112,13 +108,15 @@ task("deploy-full", "Deploy all the contracts on their first version")
         talentLayerID.address,
         talentLayerPlatformID.address,
       ];
-      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerService = await (
-        upgrades as HardhatUpgrades
-      ).deployProxy(TalentLayerService, talentLayerServiceArgs, {
-        timeout: 0,
-        pollingInterval: 20000,
-      });
+
+      const talentLayerService = await upgrades.deployProxy(
+        TalentLayerService,
+        talentLayerServiceArgs,
+        {
+          timeout: 0,
+          pollingInterval: 20000,
+        }
+      );
 
       await talentLayerService.deployTransaction.wait(1);
 
@@ -126,8 +124,7 @@ task("deploy-full", "Deploy all the contracts on their first version")
         await verifyAddress(talentLayerService.address);
       }
       const talentLayerServiceImplementationAddress =
-        await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(
+        await upgrades.erc1967.getImplementationAddress(
           talentLayerService.address
         );
       console.log("TalentLayerService addresses:", {
@@ -148,8 +145,8 @@ task("deploy-full", "Deploy all the contracts on their first version")
         talentLayerID.address,
         talentLayerService.address,
       ];
-      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerReview = await (upgrades as HardhatUpgrades).deployProxy(
+
+      const talentLayerReview = await upgrades.deployProxy(
         TalentLayerReview,
         talentLayerReviewArgs,
         {
@@ -164,8 +161,7 @@ task("deploy-full", "Deploy all the contracts on their first version")
         await verifyAddress(talentLayerReview.address);
       }
       const talentLayerReviewImplementationAddress =
-        await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(
+        await upgrades.erc1967.getImplementationAddress(
           talentLayerReview.address
         );
       console.log("TalentLayerReview addresses:", {
@@ -261,8 +257,8 @@ task("deploy-full", "Deploy all the contracts on their first version")
         networkConfig.requestContracts.erc20FeeProxy,
         networkConfig.requestContracts.ethereumFeeProxy,
       ];
-      // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-      const talentLayerEscrow = await (upgrades as HardhatUpgrades).deployProxy(
+
+      const talentLayerEscrow = await upgrades.deployProxy(
         TalentLayerEscrow,
         talentLayerEscrowArgs,
         {
@@ -277,11 +273,10 @@ task("deploy-full", "Deploy all the contracts on their first version")
         await verifyAddress(talentLayerEscrow.address);
       }
       const talentLayerEscrowImplementationAddress =
-        await // @ts-ignore: upgrades is imported in hardhat.config.ts - HardhatUpgrades
-        (upgrades as HardhatUpgrades).erc1967.getImplementationAddress(
+        await upgrades.erc1967.getImplementationAddress(
           talentLayerEscrow.address
         );
-      console.log("TalentLayerEscrow contract addresses:", {
+      console.log("CustomTalentLayerEscrow contract addresses:", {
         proxy: talentLayerEscrow.address,
         implementation: talentLayerEscrowImplementationAddress,
       });

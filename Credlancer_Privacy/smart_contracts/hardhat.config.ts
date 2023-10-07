@@ -5,7 +5,7 @@ import "@openzeppelin/hardhat-upgrades";
 
 import "dotenv/config";
 
-import "./scripts/deploy-full";
+import "./scripts/tasks/deploy-full";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const INFURA_KEY = process.env.INFURA_KEY || "";
