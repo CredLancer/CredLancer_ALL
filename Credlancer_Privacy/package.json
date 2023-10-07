@@ -44,5 +44,9 @@
   },
   "resolutions": {
     "usehooks-ts@^2.7.2": "patch:usehooks-ts@npm:^2.7.2#./.yarn/patches/usehooks-ts-npm-2.7.2-fceffe0e43.patch"
+  },
+  "dependencies": {
+    "@railgun-community/shared-models": "5.3.6",
+    "@railgun-community/wallet": "5.5.8"
   }
 }
