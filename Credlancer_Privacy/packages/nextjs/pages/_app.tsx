@@ -15,6 +15,7 @@ import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import "~~/styles/globals.css";
+import { initializeEngine, loadEngineProvider } from "~~/utils/scaffold-eth/railgun";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const price = useNativeCurrencyPrice();
@@ -28,6 +29,16 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
     uri: subgraphUri,
     cache: new InMemoryCache(),
   });
+
+  useEffect(() => {
+    try {
+      initializeEngine();
+      loadEngineProvider();
+    } catch (err) {
+      // Handle err
+      console.log(err);
+    }
+  }, []);
 
   useEffect(() => {
     if (price > 0) {

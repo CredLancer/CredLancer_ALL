@@ -47,6 +47,9 @@
   },
   "dependencies": {
     "@railgun-community/shared-models": "5.3.6",
-    "@railgun-community/wallet": "5.5.8"
+    "@railgun-community/wallet": "5.5.8",
+    "@types/level-js": "^4.0.3",
+    "ethers": "Railgun-Community/ethers.js",
+    "level-js": "^6.1.0"
   }
 }

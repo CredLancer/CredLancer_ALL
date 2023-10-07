@@ -5259,6 +5259,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/abstract-leveldown@npm:*":
+  version: 7.2.3
+  resolution: "@types/abstract-leveldown@npm:7.2.3"
+  checksum: 5c74d91712d9e8fee74612feb8c932af5aaa26a70259f1d178095edf4c3ff3e886bec53895382594c026a9179a3dd433c1fc6a7c2e04b0bebc4543c5b37f1c3c
+  languageName: node
+  linkType: hard
+
 "@types/acorn@npm:^4.0.0":
   version: 4.0.6
   resolution: "@types/acorn@npm:4.0.6"
@@ -5456,6 +5463,15 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: e009a2bfb50e90ca9b7c6e8f648f8464067271fd99116f881073fa6fa76dc8d0133181dd65e6614d5fb1220d671d67b0124aef7d97dc02d7e342ab143a47779d
+  languageName: node
+  linkType: hard
+
+"@types/level-js@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "@types/level-js@npm:4.0.3"
+  dependencies:
+    "@types/abstract-leveldown": "*"
+  checksum: c8cac4e48ce68a1fbaf35cb7a51140a836cd547e217e0fd9ac04aeedf7250bc940a2385e8bc327a9ce09947978e390143ce3ca95d96d765ea1b62996a30a783e
   languageName: node
   linkType: hard
 
@@ -11388,7 +11404,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@github:Railgun-Community/ethers.js#v6.7.6":
+"ethers@Railgun-Community/ethers.js, ethers@github:Railgun-Community/ethers.js#v6.7.6":
   version: 6.7.6
   resolution: "ethers@https://github.com/Railgun-Community/ethers.js.git#commit=8eee17db07ce57bcc453855d6aa9b945eb47dfa4"
   dependencies:
@@ -14841,6 +14857,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"level-js@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "level-js@npm:6.1.0"
+  dependencies:
+    abstract-leveldown: ^7.2.0
+    buffer: ^6.0.3
+    inherits: ^2.0.3
+    ltgt: ^2.1.2
+    run-parallel-limit: ^1.1.0
+  checksum: e858e34e5c3c86a250e7d00d79c08008c951e1913a3ee47d18db8d34f54395419137eb8457b2878073cb05af38240d2e8a496934ead1f0004a5b35709d6af120
+  languageName: node
+  linkType: hard
+
 "level-supports@npm:^2.0.1":
   version: 2.1.0
   resolution: "level-supports@npm:2.1.0"
@@ -15348,6 +15377,13 @@ __metadata:
   version: 0.3.3
   resolution: "lru_map@npm:0.3.3"
   checksum: ca9dd43c65ed7a4f117c548028101c5b6855e10923ea9d1f635af53ad20c5868ff428c364d454a7b57fe391b89c704982275410c3c5099cca5aeee00d76e169a
+  languageName: node
+  linkType: hard
+
+"ltgt@npm:^2.1.2":
+  version: 2.2.1
+  resolution: "ltgt@npm:2.2.1"
+  checksum: 7e3874296f7538bc8087b428ac4208008d7b76916354b34a08818ca7c83958c1df10ec427eeeaad895f6b81e41e24745b18d30f89abcc21d228b94f6961d50a2
   languageName: node
   linkType: hard
 
@@ -19549,7 +19585,10 @@ __metadata:
   dependencies:
     "@railgun-community/shared-models": 5.3.6
     "@railgun-community/wallet": 5.5.8
+    "@types/level-js": ^4.0.3
+    ethers: Railgun-Community/ethers.js
     husky: ^8.0.1
+    level-js: ^6.1.0
     lint-staged: ^13.0.3
   languageName: unknown
   linkType: soft
