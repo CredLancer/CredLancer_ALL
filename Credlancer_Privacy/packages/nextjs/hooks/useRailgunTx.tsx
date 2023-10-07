@@ -1,21 +1,15 @@
 import { useState } from "react";
 import useShieldPrivateKey from "./useShieldPrivateKey";
-import { ethAddress } from "@/utils/constants";
-import { getNetwork } from "@/utils/networks";
-import { parseUnits } from "@ethersproject/units";
 import { populateShield, populateShieldBaseToken } from "@railgun-community/quickstart";
-import {
-  NETWORK_CONFIG,
-  RailgunERC20Amount,
-  RailgunERC20AmountRecipient,
-  deserializeTransaction,
-} from "@railgun-community/shared-models";
-import { ethers } from "ethers";
-import { useAccount, useSigner } from "wagmi";
+import { NETWORK_CONFIG, RailgunERC20Amount, RailgunERC20AmountRecipient } from "@railgun-community/shared-models";
+import { ethers, parseUnits } from "ethers";
+import { useAccount, useWalletClient } from "wagmi";
 import { useNetwork } from "wagmi";
+import { ethAddress } from "~~/utils/constants";
+import { getNetwork } from "~~/utils/networks";
 
 const useRailgunTx = () => {
-  const { data: signer } = useSigner();
+  const { data: signer } = useWalletClient();
   const { address } = useAccount();
   const { shieldPrivateKey, getShieldPrivateKey } = useShieldPrivateKey();
   const { chain } = useNetwork();
@@ -56,22 +50,14 @@ const useRailgunTx = () => {
 
     const wrappedERC20Amount: RailgunERC20Amount = {
       tokenAddress: wethAddress, // wETH
-      amountString: parseUnits(tokenAmount!, tokenDecimals).toHexString(), // hexadecimal amount
+      amount: parseUnits(tokenAmount!, tokenDecimals), // hexadecimal amount
     };
 
-    const { serializedTransaction, error } = await populateShieldBaseToken(
-      network,
-      recipient,
-      shieldPrivateKey,
-      wrappedERC20Amount,
-    );
-    if (error) {
-      throw error;
-    }
+    const { transaction } = await populateShieldBaseToken(network, recipient, shieldPrivateKey, wrappedERC20Amount);
 
     const { chain } = NETWORK_CONFIG[network];
 
-    const transactionRequest: ethers.providers.TransactionRequest = deserializeTransaction(
+    const transactionRequest: ethers.TransactionRequest = deserializeTransaction(
       serializedTransaction!,
       undefined, // nonce (optional)
       chain.id,
@@ -80,7 +66,7 @@ const useRailgunTx = () => {
     // Public wallet to shield from.
     transactionRequest.from = address;
 
-    return signer!.sendTransaction(transactionRequest);
+    return signer?.sendTransaction(transactionRequest);
   };
 
   const shieldToken = async ({
