@@ -1,7 +1,11 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-foundry";
+import "@openzeppelin/hardhat-upgrades";
 
 import "dotenv/config";
+
+import "./scripts/deploy-full";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const INFURA_KEY = process.env.INFURA_KEY || "";
@@ -17,6 +21,9 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    hardhat: {
+      chainId: 1337,
+    },
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
       accounts: [PRIVATE_KEY],
