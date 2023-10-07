@@ -25,7 +25,10 @@
   },
   "dependencies": {
     "@opengsn/provider": "^3.0.0-beta.6",
+    "@requestnetwork/epk-signature": "^0.5.36",
+    "@requestnetwork/payment-processor": "^0.39.0",
+    "@requestnetwork/request-client.js": "^0.41.0",
     "dotenv": "^16.3.1",
-    "talentlayer-id-contracts": "https://github.com/TalentLayer/talentlayer-contracts/"
+    "talentlayer-id-contracts": "https://github.com/TalentLayer/talentlayer-contracts"
   }
 }
