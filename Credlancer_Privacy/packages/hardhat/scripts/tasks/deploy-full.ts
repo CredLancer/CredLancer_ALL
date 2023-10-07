@@ -17,7 +17,7 @@ task("deploy-full", "Deploy all the contracts on their first version")
   .setAction(async (args, { ethers, run, network, upgrades }) => {
     try {
       const { verify, useTestErc20 } = args;
-      const [deployer, bob, carol, dave] = await ethers.getSigners();
+      const [deployer] = await ethers.getSigners();
       const chainId = network.config.chainId
         ? network.config.chainId
         : Network.LOCAL;
@@ -291,22 +291,22 @@ task("deploy-full", "Deploy all the contracts on their first version")
         // Deploy ERC20 contract
 
         // amount transferred to bob, dave and carol
-        const amount = ethers.utils.parseUnits("10", 18);
+        // const amount = ethers.utils.parseUnits("10", 18);
         const SimpleERC20 = await ethers.getContractFactory("SimpleERC20");
         const simpleERC20 = await SimpleERC20.deploy();
-        await simpleERC20.transfer(bob.address, amount);
-        await simpleERC20.transfer(carol.address, amount);
-        await simpleERC20.transfer(dave.address, amount);
+        // await simpleERC20.transfer(bob.address, amount);
+        // await simpleERC20.transfer(carol.address, amount);
+        // await simpleERC20.transfer(dave.address, amount);
 
         console.log("simpleERC20 address:", simpleERC20.address);
 
         // get the SimpleERC20 balance in wallet of bob, carol and dave
-        const balance = await simpleERC20.balanceOf(bob.address);
-        console.log("SimpleERC20 balance:", balance.toString());
-        const balance2 = await simpleERC20.balanceOf(carol.address);
-        console.log("SimpleERC20 balance2:", balance2.toString());
-        const balance3 = await simpleERC20.balanceOf(dave.address);
-        console.log("SimpleERC20 balance3:", balance3.toString());
+        // const balance = await simpleERC20.balanceOf(bob.address);
+        // console.log("SimpleERC20 balance:", balance.toString());
+        // const balance2 = await simpleERC20.balanceOf(carol.address);
+        // console.log("SimpleERC20 balance2:", balance2.toString());
+        // const balance3 = await simpleERC20.balanceOf(dave.address);
+        // console.log("SimpleERC20 balance3:", balance3.toString());
 
         setDeploymentProperty(
           network.name,

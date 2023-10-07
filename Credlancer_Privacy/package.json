@@ -25,7 +25,6 @@
     "next:lint": "yarn workspace @se-2/nextjs lint",
     "next:format": "yarn workspace @se-2/nextjs format",
     "next:check-types": "yarn workspace @se-2/nextjs check-types",
-    "postinstall": "husky install",
     "precommit": "lint-staged",
     "vercel": "yarn workspace @se-2/nextjs vercel",
     "vercel:yolo": "yarn workspace @se-2/nextjs vercel:yolo",
@@ -44,12 +43,5 @@
   },
   "resolutions": {
     "usehooks-ts@^2.7.2": "patch:usehooks-ts@npm:^2.7.2#./.yarn/patches/usehooks-ts-npm-2.7.2-fceffe0e43.patch"
-  },
-  "dependencies": {
-    "@railgun-community/shared-models": "5.3.6",
-    "@railgun-community/wallet": "5.5.8",
-    "@types/level-js": "^4.0.3",
-    "ethers": "Railgun-Community/ethers.js",
-    "level-js": "^6.1.0"
   }
 }

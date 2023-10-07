@@ -2149,6 +2149,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@se-2/hardhat@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@se-2/hardhat@workspace:."
+  dependencies:
+    "@nomicfoundation/hardhat-chai-matchers": ^1.0.5
+    "@nomicfoundation/hardhat-foundry": ^1.1.1
+    "@nomicfoundation/hardhat-network-helpers": ^1.0.7
+    "@nomicfoundation/hardhat-toolbox": ^2.0.1
+    "@nomicfoundation/hardhat-verify": ^1.1.1
+    "@nomiclabs/hardhat-ethers": ^2.2.2
+    "@nomiclabs/hardhat-etherscan": ^3.1.5
+    "@opengsn/provider": ^3.0.0-beta.6
+    "@openzeppelin/hardhat-upgrades": ^1.22.1
+    "@requestnetwork/epk-signature": ^0.5.36
+    "@requestnetwork/payment-processor": ^0.39.0
+    "@requestnetwork/request-client.js": ^0.41.0
+    "@typechain/ethers-v5": ^10.1.0
+    "@typechain/hardhat": ^6.1.2
+    "@types/chai": ^4.2.0
+    "@types/mocha": ">=9.1.0"
+    chai: ^4.3.10
+    dotenv: ^16.3.1
+    ethers: ^5.6.9
+    hardhat: ^2.10.1
+    hardhat-gas-reporter: ^1.0.9
+    solidity-coverage: ^0.8.5
+    talentlayer-id-contracts: "https://github.com/TalentLayer/talentlayer-contracts"
+    ts-node: ^10.9.1
+    typechain: ^8.3.1
+    typescript: ^5.2.2
+  languageName: unknown
+  linkType: soft
+
 "@sentry/core@npm:5.30.0":
   version: 5.30.0
   resolution: "@sentry/core@npm:5.30.0"
@@ -4093,39 +4126,6 @@ __metadata:
   checksum: a9a1503d4390d8b59ad86f4607de7870b39cad43d929813599a23714831e81c520bddf61bcdd1f8e30f05fd3a2b71ae8538e946eb2786dc65c2bbc520f692eff
   languageName: node
   linkType: hard
-
-"credlancer-privacy-contracts@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "credlancer-privacy-contracts@workspace:."
-  dependencies:
-    "@nomicfoundation/hardhat-chai-matchers": ^1.0.5
-    "@nomicfoundation/hardhat-foundry": ^1.1.1
-    "@nomicfoundation/hardhat-network-helpers": ^1.0.7
-    "@nomicfoundation/hardhat-toolbox": ^2.0.1
-    "@nomicfoundation/hardhat-verify": ^1.1.1
-    "@nomiclabs/hardhat-ethers": ^2.2.2
-    "@nomiclabs/hardhat-etherscan": ^3.1.5
-    "@opengsn/provider": ^3.0.0-beta.6
-    "@openzeppelin/hardhat-upgrades": ^1.22.1
-    "@requestnetwork/epk-signature": ^0.5.36
-    "@requestnetwork/payment-processor": ^0.39.0
-    "@requestnetwork/request-client.js": ^0.41.0
-    "@typechain/ethers-v5": ^10.1.0
-    "@typechain/hardhat": ^6.1.2
-    "@types/chai": ^4.2.0
-    "@types/mocha": ">=9.1.0"
-    chai: ^4.3.10
-    dotenv: ^16.3.1
-    ethers: ^5.6.9
-    hardhat: ^2.10.1
-    hardhat-gas-reporter: ^1.0.9
-    solidity-coverage: ^0.8.5
-    talentlayer-id-contracts: "https://github.com/TalentLayer/talentlayer-contracts"
-    ts-node: ^10.9.1
-    typechain: ^8.3.1
-    typescript: ^5.2.2
-  languageName: unknown
-  linkType: soft
 
 "cross-fetch@npm:^3.0.6, cross-fetch@npm:^3.1.5":
   version: 3.1.8

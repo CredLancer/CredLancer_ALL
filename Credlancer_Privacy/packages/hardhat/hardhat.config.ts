@@ -24,11 +24,14 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
     },
-    sepolia: {
-      url: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
+    goerli: {
+      url: `https://goerli.infura.io/v3/${INFURA_KEY}`,
       accounts: [PRIVATE_KEY],
     },
   },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  }
 };
 
 export default config;

@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 
 export enum Network {
   LOCAL = 1337,
+  GOERLI = 5,
   AVALANCHE = 43114,
   FUJI = 43113,
   POLYGON = 137,
@@ -42,6 +43,21 @@ const local: NetworkConfig = {
     workpod: "0x4444F618BA8E99435E721abF3c611D5105A407e9",
     indie: "0x8d960334c2EF30f425b395C1506Ef7c5783789F3",
   },
+  requestContracts: {},
+};
+
+const goerli: NetworkConfig = {
+  multisigAddressList: {
+    fee: "0x3Fba71369E5E2E947AE2320274b1677de7D28120",
+  },
+  allowedTokenList: {
+    ETH: {
+      address: "0x0000000000000000000000000000000000000000",
+      minTransactionAmount: "0.001",
+      decimals: 18,
+    },
+  },
+  platformList: {},
   requestContracts: {},
 };
 
@@ -132,6 +148,7 @@ export const configs: { [networkId in Network]: NetworkConfig } = {
   [Network.FUJI]: fuji,
   [Network.POLYGON]: polygon,
   [Network.MUMBAI]: mumbai,
+  [Network.GOERLI]: goerli,
 };
 
 export const getConfig = (networkId: Network): NetworkConfig => {

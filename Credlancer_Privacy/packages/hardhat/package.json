@@ -1,5 +1,5 @@
 {
-  "name": "credlancer-privacy-contracts",
+  "name": "@se-2/hardhat",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
@@ -30,5 +30,17 @@
     "@requestnetwork/request-client.js": "^0.41.0",
     "dotenv": "^16.3.1",
     "talentlayer-id-contracts": "https://github.com/TalentLayer/talentlayer-contracts"
+  },
+  "scripts": {
+    "account": "hardhat run scripts/listAccount.ts",
+    "chain": "hardhat node --network hardhat --no-deploy",
+    "compile": "hardhat compile",
+    "deploy": "hardhat deploy",
+    "fork": "MAINNET_FORKING_ENABLED=true hardhat node --network hardhat --no-deploy",
+    "generate": "hardhat run scripts/generateAccount.ts",
+    "lint": "eslint --config ./.eslintrc.json --ignore-path ./.eslintignore ./*.ts ./deploy/**/*.ts ./scripts/**/*.ts ./test/**/*.ts",
+    "lint-staged": "eslint --config ./.eslintrc.json --ignore-path ./.eslintignore",
+    "test": "REPORT_GAS=true hardhat test --network hardhat",
+    "verify": "hardhat etherscan-verify"
   }
 }
