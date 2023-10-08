@@ -3,6 +3,8 @@ import type { AppProps } from "next/app";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import { Protocols } from "@waku/interfaces";
+import { ContentPairProvider, LightNodeProvider } from "@waku/react";
 import NextNProgress from "nextjs-progressbar";
 import { Toaster } from "react-hot-toast";
 import { useDarkMode } from "usehooks-ts";
@@ -55,6 +57,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
             </main>
             <Footer />
           </div>
+
           <Toaster />
         </RainbowKitProvider>
       </WagmiConfig>
