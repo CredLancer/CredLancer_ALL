@@ -3,8 +3,6 @@ import { NetworkName, RailgunWalletInfo } from "@railgun-community/shared-models
 import { createRailgunWallet, getRandomBytes } from "@railgun-community/wallet";
 import { Mnemonic, randomBytes } from "ethers";
 import type { NextPage } from "next";
-import { goerli } from "viem/chains";
-import { useAccount } from "wagmi";
 import { MetaHeader } from "~~/components/MetaHeader";
 import { MintTalentLayerId } from "~~/components/MintTalentLayerId";
 import { Button } from "~~/components/ui/button";
@@ -18,11 +16,8 @@ import {
   DialogTrigger,
 } from "~~/components/ui/dialog";
 import { Input } from "~~/components/ui/input";
-import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import useServices from "~~/hooks/talent-layer/hooks/useServices";
 import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
-import { ServiceStatusEnum } from "~~/types/talentLayer";
-import { useTalentLayerIdIds, useTalentLayerIdProfiles } from "~~/utils/generated";
 import { hashPasswordString } from "~~/utils/hash-service";
 
 const RAILGUN_WALLET_LOCAL_STORAGE_KEY = "railgunWalletId";
@@ -39,24 +34,9 @@ const Home: NextPage = () => {
   const [mnemonic, setMnemonic] = useState("");
   const [walletConfig, setWalletConfig] = useState<RailgunWalletInfo>();
   const [isOpen, setIsOpen] = useState(false);
-  const { address } = useAccount();
-
-  const { data: talentLayerId } = useTalentLayerIdIds({
-    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
-    chainId: goerli.id,
-    args: [address!],
-    enabled: address !== undefined,
-  });
-  const { data: profile } = useTalentLayerIdProfiles({
-    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
-    chainId: goerli.id,
-    args: [talentLayerId!],
-    enabled: address !== undefined && talentLayerId !== undefined,
-  });
-  const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
 
   const { isProviderLoaded } = useRailgunProvider();
-  const { services } = useServices(ServiceStatusEnum.Opened);
+  const { services } = useServices();
 
   return (
     <>
@@ -67,11 +47,6 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">CredLancer</span>
           </h1>
         </div>
-        {handle !== undefined && handle !== "" ? (
-          <p className="pb-4">Your talent layer handle is {handle}</p>
-        ) : (
-          <MintTalentLayerId />
-        )}
         <Dialog
           onOpenChange={open => {
             if (!open) setStep(0);
