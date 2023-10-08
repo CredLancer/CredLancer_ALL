@@ -1,5 +1,5 @@
+import { ServiceStatusEnum } from "../../types/talentLayer";
 import { processRequest } from "../graphql";
-import { ServiceStatusEnum } from "../types";
 
 interface IProps {
   serviceStatus?: ServiceStatusEnum;
@@ -123,7 +123,7 @@ export const getServices = (params: IProps): Promise<any> => {
   const query = `
     {
       services(orderBy: id, orderDirection: desc ${pagination} ${getFilteredServiceCondition(params)}) {
-        ${serviceQueryFields}
+        ${serviceQueryFields}∏
         description {
           ${serviceDescriptionQueryFields}
         }

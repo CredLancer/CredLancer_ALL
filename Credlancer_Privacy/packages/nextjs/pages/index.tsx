@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { gql, useQuery } from "@apollo/client";
 import { NetworkName, RailgunWalletInfo } from "@railgun-community/shared-models";
 import { createRailgunWallet, getRandomBytes } from "@railgun-community/wallet";
 import { Mnemonic, randomBytes } from "ethers";
@@ -20,7 +19,9 @@ import {
 } from "~~/components/ui/dialog";
 import { Input } from "~~/components/ui/input";
 import { CONTRACT_ADDRESSES } from "~~/constants/address";
+import useServices from "~~/hooks/talent-layer/hooks/useServices";
 import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
+import { ServiceStatusEnum } from "~~/types/talentLayer";
 import { useTalentLayerIdIds, useTalentLayerIdProfiles } from "~~/utils/generated";
 import { hashPasswordString } from "~~/utils/hash-service";
 
@@ -55,43 +56,7 @@ const Home: NextPage = () => {
   const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
 
   const { isProviderLoaded } = useRailgunProvider();
-  const { data: services } = useQuery<{
-    services: {
-      id: string;
-      status: string;
-      seller: {
-        id: string;
-        handle: string;
-        address: string;
-      };
-    }[];
-  }>(gql`
-    {
-      services {
-        id
-        status
-        buyer {
-          id
-          address
-          handle
-        }
-        seller {
-          id
-          address
-          handle
-        }
-        transaction {
-          id
-          status
-        }
-        platform {
-          id
-          name
-        }
-      }
-    }
-  `);
-  console.log({ services });
+  const { services } = useServices(ServiceStatusEnum.Opened);
 
   return (
     <>
@@ -126,17 +91,14 @@ const Home: NextPage = () => {
             {step === 3 && <StepFour setIsOpen={setIsOpen} walletConfig={walletConfig} />}
           </DialogContent>
         </Dialog>
-        {services?.services
-          .filter(service => service.status !== "Finished" && service.seller)
-          .slice(0, 10)
-          .map(service => (
-            <div key={service.id} className="p-4 rounded border">
-              <p>{service.id}</p>
-              <p>{service.seller.id}</p>
-              <p>{service.seller.address}</p>
-              <p>{service.seller.handle}</p>
-            </div>
-          ))}
+        {services.slice(0, 10).map(service => (
+          <div key={service.id} className="p-4 rounded border">
+            <p>{service.id}</p>
+            <p>{service.seller?.id}</p>
+            <p>{service.seller?.address}</p>
+            <p>{service.seller?.handle}</p>
+          </div>
+        ))}
       </div>
     </>
   );

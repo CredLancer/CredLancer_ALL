@@ -16,8 +16,8 @@ import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import "~~/styles/globals.css";
-import { initialize } from "~~/utils/railgun";
 import { SUBGRAPH_URI } from "~~/utils/constants";
+import { initialize } from "~~/utils/railgun";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   useMemo(initialize, []);
