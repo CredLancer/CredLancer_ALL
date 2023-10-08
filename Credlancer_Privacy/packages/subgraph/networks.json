@@ -15,7 +15,7 @@
     "TalentLayerArbitrator": {
       "address": "0xEc5B4eC6B323013aCb8C3564A3E5E4676cB5B134"
     },
-    "CustomTalentLayerEscrow": {
+    "TalentLayerEscrow": {
       "address": "0xaAeD3D34d525641bf7A5947E50ad4f30fBcAC233"
     },
     "ERC20FeeProxy": {

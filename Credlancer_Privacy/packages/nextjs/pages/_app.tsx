@@ -28,7 +28,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const { isDarkMode } = useDarkMode();
 
-  const subgraphUri = "https://api.thegraph.com/subgraphs/name/talentlayer/talent-layer-mumbai/graphql";
+  const subgraphUri = "http://localhost:8000/subgraphs/name/scaffold-eth/graphql";
   const apolloClient = new ApolloClient({
     uri: subgraphUri,
     cache: new InMemoryCache(),

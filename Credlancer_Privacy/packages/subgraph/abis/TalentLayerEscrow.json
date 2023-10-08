@@ -38,13 +38,13 @@
         },
         {
           "indexed": false,
-          "internalType": "enum TalentLayerEscrow.ArbitrationFeePaymentType",
+          "internalType": "enum CustomTalentLayerEscrow.ArbitrationFeePaymentType",
           "name": "_paymentType",
           "type": "uint8"
         },
         {
           "indexed": false,
-          "internalType": "enum TalentLayerEscrow.Party",
+          "internalType": "enum CustomTalentLayerEscrow.Party",
           "name": "_party",
           "type": "uint8"
         },
@@ -194,7 +194,7 @@
         },
         {
           "indexed": false,
-          "internalType": "enum TalentLayerEscrow.Party",
+          "internalType": "enum CustomTalentLayerEscrow.Party",
           "name": "_party",
           "type": "uint8"
         }
@@ -339,7 +339,7 @@
         },
         {
           "indexed": false,
-          "internalType": "enum TalentLayerEscrow.PaymentType",
+          "internalType": "enum CustomTalentLayerEscrow.PaymentType",
           "name": "_paymentType",
           "type": "uint8"
         },
@@ -526,6 +526,49 @@
         {
           "indexed": false,
           "internalType": "address",
+          "name": "tokenAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes",
+          "name": "paymentReference",
+          "type": "bytes"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "feeAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "feeAddress",
+          "type": "address"
+        }
+      ],
+      "name": "TransferWithReferenceAndFee",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
           "name": "forwarder",
           "type": "address"
         }
@@ -642,6 +685,11 @@
           "type": "uint256"
         },
         {
+          "internalType": "bytes",
+          "name": "_paymentReference",
+          "type": "bytes"
+        },
+        {
           "internalType": "string",
           "name": "_metaEvidence",
           "type": "string"
@@ -677,6 +725,32 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "erc20PaymentProxy",
+      "outputs": [
+        {
+          "internalType": "contract ERC20FeeProxy",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ethPaymentProxy",
+      "outputs": [
+        {
+          "internalType": "contract EthereumFeeProxy",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -774,7 +848,7 @@
               "type": "address"
             },
             {
-              "internalType": "enum TalentLayerEscrow.Status",
+              "internalType": "enum CustomTalentLayerEscrow.Status",
               "name": "status",
               "type": "uint8"
             },
@@ -807,9 +881,14 @@
               "internalType": "uint256",
               "name": "arbitrationFeeTimeout",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "paymentReference",
+              "type": "bytes"
             }
           ],
-          "internalType": "struct TalentLayerEscrow.Transaction",
+          "internalType": "struct CustomTalentLayerEscrow.Transaction",
           "name": "",
           "type": "tuple"
         }
@@ -837,6 +916,16 @@
         {
           "internalType": "address",
           "name": "_protocolWallet",
+          "type": "address"
+        },
+        {
+          "internalType": "contract ERC20FeeProxy",
+          "name": "_erc20PaymentProxy",
+          "type": "address"
+        },
+        {
+          "internalType": "contract EthereumFeeProxy",
+          "name": "_ethPaymentProxy",
           "type": "address"
         }
       ],
