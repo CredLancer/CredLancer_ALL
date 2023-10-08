@@ -1,7 +1,28 @@
 {
-  "localhost": {
-    "YourContract": {
-      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  "goerli": {
+    "TalentLayerID": {
+      "address": "0xE781DF79AB7afc5996Ba761BA40aaf646438656C"
+    },
+    "TalentLayerPlatformID": {
+      "address": "0x8571d5b996494DAaAe38f7E7ab89F3085B7Bc6aA"
+    },
+    "TalentLayerService": {
+      "address": "0x5E3A06986341c1195568202764590F0dE9fd0F4F"
+    },
+    "TalentLayerReview": {
+      "address": "0xdB48e8B04AE2aEF3eFC158024ED08DE0d52c68b1"
+    },
+    "TalentLayerArbitrator": {
+      "address": "0xEc5B4eC6B323013aCb8C3564A3E5E4676cB5B134"
+    },
+    "CustomTalentLayerEscrow": {
+      "address": "0xaAeD3D34d525641bf7A5947E50ad4f30fBcAC233"
+    },
+    "ERC20FeeProxy": {
+      "address": "0x25bd88F35F4d20cBA10ae8aeBAd42d70e4876EDb"
+    },
+    "EthereumFeeProxy": {
+      "address": "0xB8A06D7855656a849179A779DC7dDA9300927089"
     }
   }
 }
