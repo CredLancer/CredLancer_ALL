@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { RAILGUN_WALLET_LOCAL_STORAGE_KEY, creationBlockNumberMap } from "../../pages";
-import { RailgunWalletInfo } from "@railgun-community/shared-models";
+import type { RailgunWalletInfo } from "@railgun-community/shared-models";
 import { createRailgunWallet, getRandomBytes } from "@railgun-community/wallet";
 import { Button } from "~~/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "~~/components/ui/dialog";

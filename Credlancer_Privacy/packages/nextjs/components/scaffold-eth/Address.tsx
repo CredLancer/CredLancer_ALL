@@ -5,7 +5,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { isAddress } from "viem";
 import { useEnsAvatar, useEnsName } from "wagmi";
 import { hardhat } from "wagmi/chains";
-import { CheckCircleIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline/index.js";
 import { getBlockExplorerAddressLink, getTargetNetwork } from "~~/utils/scaffold-eth";
 
 type TAddressProps = {

@@ -1,11 +1,12 @@
 import { goerli } from "viem/chains";
-import { useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { Button } from "~~/components/ui/button";
 import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { createRecipeTransaction } from "~~/lib/railgun/create-proposal";
 
 export default function CreatePage() {
   const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
 
   async function createInvoiceRequest() {
     if (walletClient) {
@@ -25,9 +26,18 @@ export default function CreatePage() {
       console.log({ hash });
     }
   }
+
+  if (address === undefined) {
+    return (
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">Please Login</h1>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>Hello</h1>
+    <div className="text-center">
+      <h1 className="text-3xl font-bold">Hello</h1>
       <Button onClick={() => createInvoiceRequest()}>Create Invoice</Button>
     </div>
   );

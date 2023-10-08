@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createWalletClient, http, parseEther } from "viem";
 import { useAccount, useNetwork } from "wagmi";
 import { hardhat } from "wagmi/chains";
-import { BanknotesIcon } from "@heroicons/react/24/outline";
+import { BanknotesIcon } from "@heroicons/react/24/outline/index.js";
 import { useAccountBalance, useTransactor } from "~~/hooks/scaffold-eth";
 
 // Number of ETH faucet sends to an address

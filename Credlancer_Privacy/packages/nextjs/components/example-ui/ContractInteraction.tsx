@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CopyIcon } from "./assets/CopyIcon";
 import { DiamondIcon } from "./assets/DiamondIcon";
 import { HareIcon } from "./assets/HareIcon";
-import { ArrowSmallRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowSmallRightIcon, XMarkIcon } from "@heroicons/react/24/outline/index.js";
 import { useScaffoldContractWrite } from "~~/hooks/scaffold-eth";
 
 export const ContractInteraction = () => {
