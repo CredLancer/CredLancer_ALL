@@ -1,0 +1,322 @@
+enum ServiceStatus {
+  Opened
+  Confirmed
+  Finished
+  Cancelled
+  Uncompleted
+}
+
+enum PaymentType {
+  Release
+  Reimburse
+}
+
+type Service @entity {
+  id: ID! # service id
+  createdAt: BigInt! # timestamp of block creation
+  updatedAt: BigInt! # timestamp of the last change
+  status: ServiceStatus! # service status
+  buyer: User # service buyer
+  seller: User # service seller
+  transaction: Transaction @derivedFrom(field: "service") # transaction associated with this service
+  proposals: [Proposal!] @derivedFrom(field: "service") # proposals for this service
+  platform: Platform # Platform on which service was created
+  cid: String
+  description: ServiceDescription
+}
+
+type ServiceDescription @entity(immutable: true) {
+  id: ID! #cid
+  service: Service!
+  title: String
+  about: String
+  startDate: BigInt
+  expectedEndDate: BigInt
+  keywords: [Keyword!] #keywords
+  keywords_raw: String #lowercase keywords in raw format
+  rateToken: String
+  rateAmount: String
+  video_url: String
+}
+
+type Keyword @entity(immutable: true) {
+  id: ID! #Keyword
+  # Derived from does not currently work because of open issue with duplicated entities.
+  # Reason: createOrGetKeyword creates duplicated keywords from file data source (ipfs-data.ts)
+  # https://github.com/graphprotocol/graph-node/issues/4087
+  # serviceDescription: ServiceDescription @derivedFrom(field: "keywords")
+}
+
+type Review @entity(immutable: true) {
+  id: ID! # review nft id
+  service: Service! # service this review is for
+  createdAt: BigInt!
+  to: User! # reviewed user
+  rating: BigInt
+  cid: String
+  description: ReviewDescription
+}
+
+type ReviewDescription @entity(immutable: true) {
+  id: ID!
+  content: String
+  review: Review
+}
+
+type Token @entity {
+  id: ID! # token id
+  address: Bytes! # token entity
+  symbol: String! # token code
+  name: String! # token name
+  decimals: BigInt! # token decimals
+  allowed: Boolean! # Whether the token is whitelisted or not
+  minimumTransactionAmount: BigInt! # Minimum amount of token that can be transferred
+}
+
+type User @entity {
+  id: ID! # user nft id
+  index: BigInt! # index of user
+  handle: String! # handle of user
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  platform: Platform # Platform on which user nft was minted
+  numReviews: BigInt # DEPRECATED - will be remove soon, use UserStats.numReceivedReviews instead
+  address: String! # wallet address of user
+  rating: BigDecimal! # average rating from reviews user has received
+  reviews: [Review!] @derivedFrom(field: "to") # reviews of user
+  buyerServices: [Service!] @derivedFrom(field: "buyer") # services user is an buyer for
+  sellerServices: [Service!] @derivedFrom(field: "seller") # services user is an seller for
+  totalGains: [UserGain!] @derivedFrom(field: "user")
+  cid: String #cid of the description
+  description: UserDescription # User description (off chain data)
+  delegates: [String!]! # list of user delegators
+  userStats: UserStats # User proposal, service & reviews statistics
+}
+
+type UserStats @entity {
+  id: ID! # ID of the user
+  numReceivedReviews: BigInt! # number of reviews user has received
+  numGivenReviews: BigInt! # number of reviews user has given
+  numCreatedServices: BigInt! # number of services user has created
+  numFinishedServicesAsBuyer: BigInt! # number of services user has finished as a buyer
+  numCreatedProposals: BigInt! # number of proposals user has created
+  numFinishedServicesAsSeller: BigInt! # number of services user has finished as a seller
+  user: User! # Corresponding user
+}
+
+type UserDescription @entity(immutable: true) {
+  id: ID! #cid
+  title: String
+  about: String
+  skills_raw: String
+  skills: [Keyword!]
+  timezone: BigInt
+  headline: String
+  country: String
+  user: User!
+  role: String # buyer, seller, both
+  name: String # Custom user name
+  video_url: String #url
+  image_url: String #url
+  web3mailPreferences: UserWeb3mailPreferences
+}
+
+type UserWeb3mailPreferences @entity(immutable: true) {
+  id: ID! #cid
+  activeOnNewService: Boolean
+  activeOnNewProposal: Boolean
+  activeOnProposalValidated: Boolean
+  activeOnFundRelease: Boolean
+  activeOnReview: Boolean
+  activeOnPlatformMarketing: Boolean
+  activeOnProtocolMarketing: Boolean
+}
+
+enum ProposalStatus {
+  Pending
+  Validated
+  Rejected
+}
+
+type Proposal @entity {
+  id: ID! # concatenation of serviceId + seller TalentLayerId
+  service: Service! # service entity
+  createdAt: BigInt! # timestamp of block creation
+  updatedAt: BigInt! # timestamp of the last change
+  status: ProposalStatus! # Proposal status
+  seller: User # Proposal seller
+  rateToken: Token! # Rate token entity
+  rateAmount: BigInt # Rate amount
+  cid: String # cid of the description
+  platform: Platform # Platform on which proposal was created
+  description: ProposalDescription #Proposals that the description describes.
+  expirationDate: BigInt
+}
+
+type ProposalDescription @entity(immutable: true) {
+  id: ID! #Cid
+  proposal: Proposal!
+  startDate: BigInt
+  about: String
+  expectedHours: BigInt
+  video_url: String
+}
+
+#NB: Payment sender will always be the Escrow Contract
+type Payment @entity(immutable: true) {
+  id: ID! # autogenerated id
+  createdAt: BigInt # timestamp of block creation
+  service: Service! # service entity
+  amount: BigInt! # payment amount
+  rateToken: Token! # Rate token entity
+  paymentType: String # Whether the payment is a release or a reimbursement
+  transactionHash: String # Transaction hash of the transfer
+  transaction: Transaction! # transaction entity
+}
+
+enum TransactionStatus {
+  NoDispute
+  WaitingSender
+  WaitingReceiver
+  DisputeCreated
+  Resolved
+}
+
+type Transaction @entity {
+  id: ID! # transaction id
+  sender: User # sender of the transaction
+  receiver: User # receiver of the transaction
+  token: Token! # token entity
+  amount: BigInt! # amount
+  service: Service # service entity
+  protocolEscrowFeeRate: Int! # fee paid to the protocol
+  originServiceFeeRate: Int! # Fee asked by the platform which created the service
+  originValidatedProposalFeeRate: Int! # Fee asked by the platform on which the proposal was validated
+  disputeId: BigInt # id of the dispute if exists
+  senderFee: BigInt! # fees paid by the sender for arbitration
+  receiverFee: BigInt! # fees paid by the receiver for arbitration
+  lastInteraction: BigInt! # timestamp of the last interaction by parties with the dispute
+  senderFeePaidAt: BigInt # timestamp when the arbitration fee was paid by the sender
+  receiverFeePaidAt: BigInt # timestamp when the arbitration fee was paid by the receiver
+  status: TransactionStatus! # status of the payment
+  arbitrator: Bytes! # address of the arbitrator contract
+  arbitratorExtraData: Bytes! # extra data for the arbitrator
+  arbitrationFeeTimeout: BigInt! # timeout for the arbitration fee to be paid
+  ruling: BigInt # ruling of the arbitrator on the dispute
+  evidences: [Evidence!] @derivedFrom(field: "transaction") # proposals for this service
+  metaEvidenceUri: String! # uri of the dispute metadata
+  payments: [Payment!] @derivedFrom(field: "transaction") # payments related to this transaction
+}
+
+type Evidence @entity(immutable: true) {
+  id: ID! # autogenerated id
+  transaction: Transaction! # transaction entity
+  createdAt: BigInt! # Timestamp of block creation
+  party: User! # party that submitted the evidence
+  description: EvidenceDescription # ipfs data of the evidence
+  cid: String! # metadata URI of evidence
+}
+
+type EvidenceDescription @entity(immutable: true) {
+  id: ID! # Evidence cid + block.timestamp
+  evidence: Evidence! # Evidence entity
+  fileUri: String # "ipfs/" + cid of evidence
+  fileHash: String # hash of the evidence file
+  fileTypeExtension: String # extension of the evidence file
+  name: String # name of the evidence
+  description: String # description of the evidence
+}
+
+type Platform @entity {
+  id: ID! # platform id
+  address: Bytes! # wallet address of platform owner
+  name: String! # name of the platform
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  feePayments: [FeePayment!] @derivedFrom(field: "platform") # Platform-related fee payments
+  totalPlatformGains: [PlatformGain!] @derivedFrom(field: "platform") # Platform-related total gains per token
+  feeClaims: [FeeClaim!] @derivedFrom(field: "platform") # Platform-related fee claims
+  originServiceFeeRate: Int! # Fee asked by the platform which created the service
+  originValidatedProposalFeeRate: Int! # Fee asked by the platform on which the proposal was validated
+  servicePostingFee: BigInt! # Flat fee asked by the platform to post a service
+  proposalPostingFee: BigInt! # Flat fee asked by the platform to post a proposal
+  arbitrator: Bytes! # address of the arbitrator contract
+  arbitratorExtraData: Bytes! # extra data for the arbitrator
+  arbitrationFeeTimeout: BigInt! # timeout for the arbitration fee to be paid
+  cid: String #cid of description
+  description: PlatformDescription
+  signer: Bytes! # address of the platform signer
+}
+
+type PlatformDescription @entity(immutable: true) {
+  id: ID! #cid
+  about: String #text
+  website: String #url
+  platform: Platform!
+  video_url: String
+  image_url: String
+}
+
+enum FeeType {
+  Platform
+  OriginPlatform
+}
+
+type FeePayment @entity(immutable: true) {
+  id: ID! # autogenerated id
+  createdAt: BigInt # timestamp of block creation
+  platform: Platform # platform entity
+  service: Service # service entity
+  type: FeeType! # fee type
+  token: Token # token entity
+  amount: BigInt # platform fee
+}
+
+type FeeClaim @entity(immutable: true) {
+  id: ID! # autogenerated id
+  createdAt: BigInt # timestamp of block creation
+  platform: Platform # platform entity
+  token: Token # token entity
+  amount: BigInt! # claim amount
+  transactionHash: String # Transaction hash of the transfer
+}
+
+type PlatformGain @entity {
+  id: ID! # concatenation of platformId + token entity
+  platform: Platform # platform entity
+  token: Token # token entity
+  totalOriginPlatformFeeGain: BigInt! # total Origin Platform gain
+  totalPlatformFeeGain: BigInt! # total Platform gain
+}
+
+type UserGain @entity {
+  id: ID! # concatenation of userId + token entity
+  user: User
+  token: Token # token entity
+  totalGain: BigInt! # total User gain
+}
+
+type Protocol @entity {
+  id: ID! # autogenerated id
+  userMintFee: BigInt! # protocol fee for minting a TL id
+  platformMintFee: BigInt! # protocol fee for minting a platform id
+  protocolEscrowFeeRate: Int! # protocol fee for each escrow transaction (percentage, per 10,000)
+  totalMintFees: BigInt! # total mint fees collected
+  minArbitrationFeeTimeout: BigInt! # minimum timeout to pay the arbitration fee
+  shortHandlesMaxPrice: BigInt! # maximum price for a short handle
+  minServiceCompletionPercentage: BigInt! # minimum percentage of released amount for considering a service completed
+}
+
+# Comment to prevent error on build is your graph node don't support it and have the error "Fulltext search is not yet deterministic"
+type _Schema_
+  @fulltext(
+    name: "serviceDescriptionSearchRank"
+    language: en
+    algorithm: proximityRank
+    include: [
+      {
+        entity: "ServiceDescription"
+        fields: [{ name: "title" }, { name: "keywords_raw" }]
+      }
+    ]
+  )
