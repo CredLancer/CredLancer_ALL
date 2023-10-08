@@ -32,7 +32,7 @@ export function CreateRailgunWallet() {
           </span>
         </div>
       </DialogTrigger>
-      <DialogContent className="bg-slate-800">
+      <DialogContent>
         {step === 0 && <StepOne setStep={setStep} />}
         {step === 1 && <StepTwo setMnemonic={setMnemonic} setStep={setStep} />}
         {step === 2 && <StepThree setWalletConfig={setWalletConfig} mnemonic={mnemonic} setStep={setStep} />}

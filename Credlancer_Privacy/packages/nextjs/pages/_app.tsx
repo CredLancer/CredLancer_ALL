@@ -26,7 +26,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const setNativeCurrencyPrice = useGlobalState(state => state.setNativeCurrencyPrice);
   // This variable is required for initial client side rendering of correct theme for RainbowKit
   const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const { isDarkMode } = useDarkMode();
+  const { enable } = useDarkMode();
 
   const apolloClient = new ApolloClient({
     uri: SUBGRAPH_URI,
@@ -40,8 +40,9 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   }, [setNativeCurrencyPrice, price]);
 
   useEffect(() => {
-    setIsDarkTheme(isDarkMode);
-  }, [isDarkMode]);
+    enable();
+    setIsDarkTheme(true);
+  }, []);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>

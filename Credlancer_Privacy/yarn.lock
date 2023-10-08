@@ -12475,9 +12475,9 @@ ethereumjs-util@^7.1.0, ethereumjs-util@^7.1.1, ethereumjs-util@^7.1.2, ethereum
   languageName: node
   linkType: hard
 
-"ethereumjs-util@npm:^6.0.0, ethereumjs-util@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "ethereumjs-util@npm:6.2.1"
+"ethers@github:Railgun-Community/ethers.js#v6.7.6":
+  version "6.7.6"
+  resolved "https://codeload.github.com/Railgun-Community/ethers.js/tar.gz/8eee17db07ce57bcc453855d6aa9b945eb47dfa4"
   dependencies:
     "@types/bn.js": ^4.11.3
     bn.js: ^4.11.0

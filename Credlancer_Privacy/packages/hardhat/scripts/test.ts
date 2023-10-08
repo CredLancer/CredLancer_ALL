@@ -1,13 +1,21 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "hardhat";
 
 async function main() {
   // const [deployer] = await ethers.getSigners();
 
-  const ServiceContract = await ethers.getContractFactory("CustomTalentLayerService");
-  await upgrades.upgradeProxy(
-    "0x5E3A06986341c1195568202764590F0dE9fd0F4F",
-    ServiceContract
-  );
+  const SemaphoreContract = await ethers.getContractFactory("Semaphore");
+  const semaphore = await SemaphoreContract.deploy();
+
+  const FeedbackContract = await ethers.getContractFactory("Feedback");
+  const instance = await FeedbackContract.deploy(semaphore.address, 10);
+
+  console.log("Feedback deployed to:", instance.address);
+
+  // const ServiceContract = await ethers.getContractFactory("CustomTalentLayerService");
+  // await upgrades.upgradeProxy(
+  //   "0x5E3A06986341c1195568202764590F0dE9fd0F4F",
+  //   ServiceContract
+  // );
 
   // const platformIdContract = await ethers.getContractAt(
   //   "TalentLayerPlatformID",
