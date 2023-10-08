@@ -1,5 +1,5 @@
+import type { RailgunWalletInfo } from "@railgun-community/shared-models";
 import { Dispatch, SetStateAction } from "react";
-import { RailgunWalletInfo } from "@railgun-community/shared-models";
 import { Button } from "~~/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "~~/components/ui/dialog";
 

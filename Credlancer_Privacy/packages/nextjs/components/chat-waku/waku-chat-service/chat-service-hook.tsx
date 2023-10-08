@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ChatService from "./chat-service";
 import { Message } from "./message-handler";
-import { RelayNode, createDecoder, createEncoder } from "@waku/sdk";
+import { RelayNode, createDecoder } from "@waku/sdk";
 
 const encryptionKey = "supersecretkey";
 const contentTopic = "content-topic/string/credlancer";

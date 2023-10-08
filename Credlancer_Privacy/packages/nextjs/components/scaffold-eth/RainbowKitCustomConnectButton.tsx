@@ -14,7 +14,7 @@ import {
   ChevronDownIcon,
   DocumentDuplicateIcon,
   QrCodeIcon,
-} from "@heroicons/react/24/outline";
+} from "@heroicons/react/24/outline/index.js";
 import { Address, Balance, BlockieAvatar } from "~~/components/scaffold-eth";
 import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { useAutoConnect, useNetworkColor } from "~~/hooks/scaffold-eth";

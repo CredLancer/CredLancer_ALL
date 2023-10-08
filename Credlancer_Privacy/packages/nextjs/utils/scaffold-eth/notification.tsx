@@ -1,12 +1,12 @@
 import React from "react";
 import { toast } from "react-hot-toast";
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { XMarkIcon } from "@heroicons/react/20/solid/index.js";
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-} from "@heroicons/react/24/solid";
+} from "@heroicons/react/24/solid/index.js";
 import { Spinner } from "~~/components/Spinner";
 
 type TPositions = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";

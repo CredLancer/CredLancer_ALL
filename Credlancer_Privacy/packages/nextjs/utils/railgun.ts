@@ -55,6 +55,6 @@ export const initialize = () => {
 
   const skipMerkleTreeScans = true;
 
-  startRailgunEngine(walletSource, db, shouldDebug, artifactStore, useNativeArtifacts, skipMerkleTreeScans);
+  startRailgunEngine(walletSource, db as any, shouldDebug, artifactStore, useNativeArtifacts, skipMerkleTreeScans);
   setLogging();
 };

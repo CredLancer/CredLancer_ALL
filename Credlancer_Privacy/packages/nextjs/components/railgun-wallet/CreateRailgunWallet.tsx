@@ -1,13 +1,13 @@
+import type { RailgunWalletInfo } from "@railgun-community/shared-models";
+import { WalletIcon } from "lucide-react";
 import { useState } from "react";
+import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
+import { cn } from "~~/utils";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { StepFour } from "./StepFour";
 import { StepOne } from "./StepOne";
 import { StepThree } from "./StepThree";
 import { StepTwo } from "./StepTwo";
-import { RailgunWalletInfo } from "@railgun-community/shared-models";
-import { WalletIcon } from "lucide-react";
-import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
-import { cn } from "~~/utils";
 
 export function CreateRailgunWallet() {
   const [step, setStep] = useState(0);
