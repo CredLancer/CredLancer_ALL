@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { isAddress, isHex } from "viem";
+import { goerli } from "viem/chains";
 import { usePublicClient } from "wagmi";
-import { hardhat } from "wagmi/chains";
 
 export const SearchBar = () => {
   const [searchInput, setSearchInput] = useState("");
   const router = useRouter();
 
-  const client = usePublicClient({ chainId: hardhat.id });
+  const client = usePublicClient({ chainId: goerli.id });
 
   const handleSearch = async (event: React.FormEvent) => {
     event.preventDefault();

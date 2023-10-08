@@ -41,7 +41,7 @@ export const initialize = () => {
   // Name for your wallet implementation.
   // Encrypted and viewable in private transaction history.
   // Maximum of 16 characters, lowercase.
-  const walletSource = "hi";
+  const walletSource = "credlancer";
 
   // Persistent store for downloading large artifact files.
   // See Quickstart Developer Guide for platform implementations.
@@ -55,14 +55,6 @@ export const initialize = () => {
 
   const skipMerkleTreeScans = true;
 
-  startRailgunEngine(
-    walletSource,
-    // @ts-ignore
-    db,
-    shouldDebug,
-    artifactStore,
-    useNativeArtifacts,
-    skipMerkleTreeScans,
-  );
+  startRailgunEngine(walletSource, db, shouldDebug, artifactStore, useNativeArtifacts, skipMerkleTreeScans);
   setLogging();
 };

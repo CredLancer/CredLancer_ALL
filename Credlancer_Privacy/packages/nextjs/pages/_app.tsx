@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import type { AppProps } from "next/app";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import type { AppProps } from "next/app";
 import NextNProgress from "nextjs-progressbar";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useDarkMode } from "usehooks-ts";
 import { WagmiConfig } from "wagmi";
@@ -11,7 +11,6 @@ import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
-import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
 import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
@@ -21,7 +20,6 @@ import { initialize } from "~~/utils/railgun";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   useMemo(initialize, []);
-  useRailgunProvider();
 
   const price = useNativeCurrencyPrice();
   const setNativeCurrencyPrice = useGlobalState(state => state.setNativeCurrencyPrice);
