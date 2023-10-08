@@ -36,7 +36,7 @@
     "abi-copy": "yarn workspace @se-2/subgraph abi-copy",
     "codegen": "yarn workspace @se-2/subgraph codegen"
   },
-  "packageManager": "yarn@3.2.3",
+  "packageManager": "yarn@3.6.4",
   "devDependencies": {
     "@types/crypto-js": "^4.1.2",
     "husky": "^8.0.1",
