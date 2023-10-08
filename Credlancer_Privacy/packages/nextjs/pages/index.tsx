@@ -1,5 +1,6 @@
 import { NetworkName } from "@railgun-community/shared-models";
 import type { NextPage } from "next";
+import { useRouter } from "next/router";
 import { MetaHeader } from "~~/components/MetaHeader";
 import useServices from "~~/hooks/talent-layer/hooks/useServices";
 
@@ -14,7 +15,7 @@ export const creationBlockNumberMap: Record<string, number> = {
 
 const Home: NextPage = () => {
   const { services } = useServices();
-
+  const { router } = useRouter();
   return (
     <>
       <MetaHeader />
@@ -24,15 +25,20 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">CredLancer</span>
           </h1>
         </div>
-
-        {services.slice(0, 10).map(service => (
-          <div key={service.id} className="p-4 rounded border">
-            <p>{service.id}</p>
-            <p>{service.seller?.id}</p>
-            <p>{service.seller?.address}</p>
-            <p>{service.seller?.handle}</p>
-          </div>
-        ))}
+        <div className="grid-cols-3 gap-3">
+          {services.slice(0, 12).map(service => (
+            <div
+              key={service.id}
+              className="col-span-1 p-4 rounded border hover:cursor-pointer"
+              onClick={() => router.push(`/${service.id}/chat`)}
+            >
+              <p>Sender: {service.cid}</p>
+              <p>Sender: {service.sender?.address}</p>
+              <p>Handle: {service.sender?.handle}</p>
+              <p>Status: {service.status}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

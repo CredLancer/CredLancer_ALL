@@ -2,6 +2,7 @@
   "name": "@se-2/nextjs",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@6.3.2",
   "scripts": {
     "dev": "next dev",
     "start": "cross-env GENERATE_SOURCEMAP=false PORT=3003 next dev",

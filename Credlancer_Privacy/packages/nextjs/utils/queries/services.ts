@@ -123,7 +123,7 @@ export const getServices = (params: IProps): Promise<any> => {
   const query = `
     {
       services(orderBy: id, orderDirection: desc ${pagination} ${getFilteredServiceCondition(params)}) {
-        ${serviceQueryFields}∏
+        ${serviceQueryFields}
         description {
           ${serviceDescriptionQueryFields}
         }
