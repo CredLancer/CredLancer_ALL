@@ -26,10 +26,12 @@ contract Feedback {
         semaphore.addMember(groupId, identityCommitment);
     }
 
-    function sendFeedback(
+    function sendFeedbackToOrganization(
         uint256 feedback,
         uint256 merkleTreeRoot,
         uint256 nullifierHash,
+        uint256 organizationId,
+        string memory cid,
         uint256[8] calldata proof
     ) external {
         semaphore.verifyProof(
@@ -40,5 +42,31 @@ contract Feedback {
             groupId,
             proof
         );
+        reviews[reviewCounter] = cid;
+        reviewsByOrganization[organizationId].push(reviewCounter);
+
+        reviewCounter++;
+    }
+
+    function sendFeedbackToProfile(
+        uint256 feedback,
+        uint256 merkleTreeRoot,
+        uint256 nullifierHash,
+        uint256 profileId,
+        string memory cid,
+        uint256[8] calldata proof
+    ) external {
+        semaphore.verifyProof(
+            groupId,
+            merkleTreeRoot,
+            feedback,
+            nullifierHash,
+            groupId,
+            proof
+        );
+        reviews[reviewCounter] = cid;
+        reviewsByProfile[profileId].push(reviewCounter);
+
+        reviewCounter++;
     }
 }
