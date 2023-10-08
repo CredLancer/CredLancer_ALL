@@ -10,7 +10,6 @@ dataSources:
     source:
       abi: TalentLayerID
       address: "0xE781DF79AB7afc5996Ba761BA40aaf646438656C"
-      startBlock: 9827004
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,7 +47,6 @@ dataSources:
     source:
       abi: TalentLayerReview
       address: "0xdB48e8B04AE2aEF3eFC158024ED08DE0d52c68b1"
-      startBlock: 9827004
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,7 +72,6 @@ dataSources:
     source:
       abi: TalentLayerService
       address: "0x5E3A06986341c1195568202764590F0dE9fd0F4F"
-      startBlock: 9827004
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -108,7 +105,6 @@ dataSources:
     source:
       abi: TalentLayerEscrow
       address: "0xaAeD3D34d525641bf7A5947E50ad4f30fBcAC233"
-      startBlock: 9827004
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -159,7 +155,6 @@ dataSources:
     source:
       abi: TalentLayerPlatformID
       address: "0x8571d5b996494DAaAe38f7E7ab89F3085B7Bc6aA"
-      startBlock: 9827004
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -267,7 +262,7 @@ templates:
       abis:
         - name: TalentLayerPlatformID
           file: ./abis/TalentLayerPlatformID.json
-    network: mumbai
+    network: goerli
   - name: EvidenceData
     kind: file/ipfs
     mapping:
@@ -280,4 +275,4 @@ templates:
       abis:
         - name: TalentLayerEscrow
           file: ./abis/TalentLayerEscrow.json
-    network: mumbai
+    network: goerli

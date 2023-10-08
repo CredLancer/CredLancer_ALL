@@ -1,26 +1,277 @@
 specVersion: 0.0.4
-description: Greetings
-repository: https://github.com/scaffold-eth/se-2/packages/subgraph/
 schema:
   file: schema.graphql
+features:
+  - fullTextSearch
 dataSources:
   - kind: ethereum/contract
-    name: YourContract
-    network: localhost
+    name: TalentLayerID
+    network: goerli
     source:
-      abi: YourContract
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      abi: TalentLayerID
+      address: "0xE781DF79AB7afc5996Ba761BA40aaf646438656C"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Greeting
-        - Sender
+        - User
       abis:
-        - name: YourContract
-          file: YourContract/abis/localhost_YourContract.json
+        - name: TalentLayerID
+          file: TalentLayerID/abis/TalentLayerID.json
       eventHandlers:
-        - event: GreetingChange(indexed address,string,bool,uint256)
-          handler: handleGreetingChange
-      file: YourContract/YourContract.wasm
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: CidUpdated(indexed uint256,string)
+          handler: handleCidUpdated
+        - event: Mint(indexed address,uint256,string,uint256,uint256)
+          handler: handleMint
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: MintFeeUpdated(uint256)
+          handler: handleMintFeeUpdated
+        - event: DelegateAdded(uint256,address)
+          handler: handleDelegateAdded
+        - event: DelegateRemoved(uint256,address)
+          handler: handleDelegateRemoved
+        - event: ShortHandlesMaxPriceUpdated(uint256)
+          handler: handleShortHandlesMaxPriceUpdate
+      file: TalentLayerID/TalentLayerID.wasm
+  - kind: ethereum/contract
+    name: TalentLayerReview
+    network: goerli
+    source:
+      abi: TalentLayerReview
+      address: "0xdB48e8B04AE2aEF3eFC158024ED08DE0d52c68b1"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Review
+      abis:
+        - name: TalentLayerReview
+          file: TalentLayerReview/abis/TalentLayerReview.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: Mint(indexed uint256,indexed uint256,indexed uint256,uint256,string)
+          handler: handleMint
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: TalentLayerReview/TalentLayerReview.wasm
+  - kind: ethereum/contract
+    name: TalentLayerService
+    network: goerli
+    source:
+      abi: TalentLayerService
+      address: "0x5E3A06986341c1195568202764590F0dE9fd0F4F"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Service
+        - Proposal
+        - ServiceDescription
+      abis:
+        - name: TalentLayerService
+          file: TalentLayerService/abis/TalentLayerService.json
+        - name: ERC20
+          file: TalentLayerService/abis/ERC20.json
+      eventHandlers:
+        - event: ServiceCreated(uint256,uint256,uint256,string)
+          handler: handleServiceCreated
+        - event: ServiceDetailedUpdated(indexed uint256,string)
+          handler: handleServiceDetailedUpdated
+        - event: ProposalCreated(uint256,uint256,string,uint8,address,uint256,uint256,uint256)
+          handler: handleProposalCreated
+        - event: ProposalUpdated(uint256,uint256,string,address,uint256,uint256)
+          handler: handleProposalUpdated
+        - event: AllowedTokenListUpdated(address,bool,uint256)
+          handler: handleAllowedTokenListUpdated
+        - event: MinCompletionPercentageUpdated(uint256)
+          handler: handleMinCompletionPercentageUpdated
+      file: TalentLayerService/TalentLayerService.wasm
+  - kind: ethereum/contract
+    name: TalentLayerEscrow
+    network: goerli
+    source:
+      abi: TalentLayerEscrow
+      address: "0xaAeD3D34d525641bf7A5947E50ad4f30fBcAC233"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Service
+        - Proposal
+        - FeePayment
+        - FeeClaim
+        - PlatformGain
+      abis:
+        - name: TalentLayerEscrow
+          file: TalentLayerEscrow/abis/TalentLayerEscrow.json
+        - name: ERC20
+          file: TalentLayerEscrow/abis/ERC20.json
+      eventHandlers:
+        - event: PaymentCompleted(uint256)
+          handler: handlePaymentCompleted
+        - event: Payment(uint256,uint8,address,uint256,uint256)
+          handler: handlePayment
+        - event: FeesClaimed(uint256,indexed address,uint256)
+          handler: handleFeesClaimed
+        - event: OriginServiceFeeRateReleased(uint256,uint256,indexed address,uint256)
+          handler: handleOriginServiceFeeRateReleased
+        - event: OriginValidatedProposalFeeRateReleased(uint256,uint256,indexed address,uint256)
+          handler: handleOriginValidatedProposalFeeRateReleased
+        - event: ProtocolEscrowFeeRateUpdated(uint16)
+          handler: handleProtocolEscrowFeeRateUpdated
+        - event: TransactionCreated(uint256,uint256,uint256,address,uint256,uint256,uint256,uint16,uint16,uint16,address,bytes,uint256)
+          handler: handleTransactionCreated
+        - event: ArbitrationFeePayment(indexed uint256,uint8,uint8,uint256)
+          handler: handleArbitrationFeePayment
+        - event: HasToPayFee(indexed uint256,uint8)
+          handler: handleHasToPayFee
+        - event: Dispute(indexed address,indexed uint256,uint256,uint256)
+          handler: handleDispute
+        - event: RulingExecuted(indexed uint256,uint256)
+          handler: handleRulingExecuted
+        - event: EvidenceSubmitted(indexed uint256,indexed uint256,string)
+          handler: handleEvidenceSubmitted
+        - event: MetaEvidence(indexed uint256,string)
+          handler: handleMetaEvidence
+      file: TalentLayerEscrow/TalentLayerEscrow.wasm
+  - kind: ethereum/contract
+    name: TalentLayerPlatformID
+    network: goerli
+    source:
+      abi: TalentLayerPlatformID
+      address: "0x8571d5b996494DAaAe38f7E7ab89F3085B7Bc6aA"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Platform
+      abis:
+        - name: TalentLayerPlatformID
+          file: TalentLayerPlatformID/abis/TalentLayerPlatformID.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: CidUpdated(indexed uint256,string)
+          handler: handleCidUpdated
+        - event: Mint(indexed address,uint256,string,uint256,uint256)
+          handler: handleMint
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: MintFeeUpdated(uint256)
+          handler: handleMintFeeUpdated
+        - event: OriginServiceFeeRateUpdated(uint256,uint16)
+          handler: handleOriginServiceFeeRateUpdated
+        - event: OriginValidatedProposalFeeRateUpdated(uint256,uint16)
+          handler: handleOriginValidatedProposalFeeRateUpdated
+        - event: ArbitratorUpdated(uint256,address,bytes)
+          handler: handleArbitratorUpdated
+        - event: ArbitrationFeeTimeoutUpdated(uint256,uint256)
+          handler: handleArbitrationFeeTimeoutUpdated
+        - event: MinArbitrationFeeTimeoutUpdated(uint256)
+          handler: handleMinArbitrationFeeTimeoutUpdated
+        - event: ServicePostingFeeUpdated(uint256,uint256)
+          handler: handleServicePostingFeeUpdated
+        - event: ProposalPostingFeeUpdated(uint256,uint256)
+          handler: handleProposalPostingFeeUpdated
+        - event: SignerUpdated(uint256,address)
+          handler: handleSignerUpdated
+      file: TalentLayerPlatformID/TalentLayerPlatformID.wasm
+templates:
+  - name: ServiceData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handleServiceData
+      entities:
+        - ServiceDescription
+        - Service
+        - Keyword
+      abis:
+        - name: TalentLayerService
+          file: ServiceData/abis/TalentLayerService.json
+    network: goerli
+  - name: ProposalData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handleProposalData
+      entities:
+        - ProposalDescription
+      abis:
+        - name: TalentLayerService
+          file: ProposalData/abis/TalentLayerService.json
+    network: goerli
+  - name: ReviewData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handleReviewData
+      entities:
+        - ReviewDescription
+      abis:
+        - name: TalentLayerReview
+          file: ReviewData/abis/TalentLayerReview.json
+    network: goerli
+  - name: UserData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handleUserData
+      entities:
+        - UserDescription
+        - Keyword
+      abis:
+        - name: TalentLayerID
+          file: UserData/abis/TalentLayerID.json
+    network: goerli
+  - name: PlatformData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handlePlatformData
+      entities:
+        - PlatformDescription
+      abis:
+        - name: TalentLayerPlatformID
+          file: PlatformData/abis/TalentLayerPlatformID.json
+    network: goerli
+  - name: EvidenceData
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: templates/ServiceData/ServiceData.wasm
+      handler: handleEvidenceData
+      entities:
+        - EvidenceDescription
+      abis:
+        - name: TalentLayerEscrow
+          file: EvidenceData/abis/TalentLayerEscrow.json
+    network: goerli

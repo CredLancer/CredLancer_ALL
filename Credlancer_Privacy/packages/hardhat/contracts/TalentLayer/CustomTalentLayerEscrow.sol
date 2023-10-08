@@ -1,350 +1,230 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-
-import {ITalentLayerService} from "talentlayer-id-contracts/contracts/interfaces/ITalentLayerService.sol";
 import {ITalentLayerID} from "talentlayer-id-contracts/contracts/interfaces/ITalentLayerID.sol";
 import {ITalentLayerPlatformID} from "talentlayer-id-contracts/contracts/interfaces/ITalentLayerPlatformID.sol";
-import {IArbitrable} from "talentlayer-id-contracts/contracts/interfaces/IArbitrable.sol";
-import {Arbitrator} from "talentlayer-id-contracts/contracts/Arbitrator.sol";
+import {ERC2771RecipientUpgradeable} from "talentlayer-id-contracts/contracts/libs/ERC2771RecipientUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
-import {ERC2771RecipientUpgradeable} from "./ERC2771RecipientUpgradeable.sol";
-
-import "../../lib/ERC20FeeProxy.sol";
-import "../../lib/EthereumFeeProxy.sol";
-
-/**
- * Adapted from https://github.com/Proof-Of-Photo/smart-contracts
- */
-contract CustomTalentLayerEscrow is
+/// modified service to hide the proposal amount
+contract CustomTalentLayerService is
     Initializable,
     ERC2771RecipientUpgradeable,
-    PausableUpgradeable,
     UUPSUpgradeable,
-    IArbitrable
+    AccessControlUpgradeable
 {
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-
     // =========================== Enum ==============================
 
     /**
-     * @notice Enum payment type
-     */
-    enum PaymentType {
-        Release,
-        Reimburse
-    }
-
-    /**
-     * @notice Arbitration fee payment type enum
-     */
-    enum ArbitrationFeePaymentType {
-        Pay,
-        Reimburse
-    }
-
-    /**
-     * @notice party type enum
-     */
-    enum Party {
-        Sender,
-        Receiver
-    }
-
-    /**
-     * @notice Transaction status enum
+     * @notice Enum service status
      */
     enum Status {
-        NoDispute, // no dispute has arisen about the transaction
-        WaitingSender, // receiver has paid arbitration fee, while sender still has to do it
-        WaitingReceiver, // sender has paid arbitration fee, while receiver still has to do it
-        DisputeCreated, // both parties have paid the arbitration fee and a dispute has been created
-        Resolved // the transaction is solved (either no dispute has ever arisen or the dispute has been resolved)
+        Opened,
+        Confirmed,
+        Finished,
+        Cancelled,
+        Uncompleted
+    }
+
+    /**
+     * @notice Enum proposal status
+     */
+    enum ProposalStatus {
+        Pending,
+        Validated
     }
 
     // =========================== Struct ==============================
 
     /**
-     * @notice Transaction struct
-     * @param id Incremental identifier
-     * @param sender The party paying the escrow amount
-     * @param receiver The intended receiver of the escrow amount
-     * @param token The token used for the transaction
-     * @param amount The amount of the transaction EXCLUDING FEES
-     * @param releasedAmount The amount of the transaction that has been released to the receiver EXCLUDING FEES
-     * @param serviceId The ID of the associated service
-     * @param proposalId The id of the validated proposal
-     * @param protocolEscrowFeeRate The %fee (per ten thousands) paid to the protocol's owner
-     * @param originServiceFeeRate The %fee (per ten thousands) paid to the platform on which the service was created
-     * @param originValidatedProposalFeeRate the %fee (per ten thousands) paid to the platform on which the proposal was validated
-     * @param arbitrator The address of the contract that can rule on a dispute for the transaction.
-     * @param status The status of the transaction for the dispute procedure.
-     * @param disputeId The ID of the dispute, if it exists
-     * @param senderFee Total fees paid by the sender for the dispute procedure.
-     * @param receiverFee Total fees paid by the receiver for the dispute procedure.
-     * @param lastInteraction Last interaction for the dispute procedure.
-     * @param arbitratorExtraData Extra data to set up the arbitration.
-     * @param arbitrationFeeTimeout timeout for parties to pay the arbitration fee
+     * @notice Service information struct
+     * @param status the current status of a service
+     * @param ownerId the talentLayerId of the buyer
+     * @param acceptedProposalId the accepted proposal ID
+     * @param dataUri token Id to IPFS URI mapping
+     * @param transactionId the escrow transaction ID linked to the service
+     * @param platformId the platform ID on which the service was created
      */
-    struct Transaction {
-        uint256 id;
-        address sender;
-        address receiver;
-        address token;
-        uint256 amount;
-        uint256 releasedAmount;
-        uint256 serviceId;
-        uint256 proposalId;
-        uint16 protocolEscrowFeeRate;
-        uint16 originServiceFeeRate;
-        uint16 originValidatedProposalFeeRate;
-        Arbitrator arbitrator;
+    struct Service {
         Status status;
-        uint256 disputeId;
-        uint256 senderFee;
-        uint256 receiverFee;
-        uint256 lastInteraction;
-        bytes arbitratorExtraData;
-        uint256 arbitrationFeeTimeout;
-        bytes paymentReference;
+        uint256 ownerId;
+        uint256 acceptedProposalId;
+        string dataUri;
+        uint256 transactionId;
+        uint256 platformId;
+    }
+
+    /**
+     * @notice Proposal information struct
+     * @param status the current status of a service
+     * @param ownerId the talentLayerId of the seller
+     * @param rateToken the token choose for the payment
+     * @param rateAmount the amount of token chosen
+     * @param dataUri token Id to IPFS URI mapping
+     * @param expirationDate the timeout for the proposal
+     */
+    struct Proposal {
+        ProposalStatus status;
+        uint256 ownerId;
+        address rateToken;
+        uint256 rateAmount;
+        uint256 platformId;
+        string dataUri;
+        uint256 expirationDate;
+    }
+
+    /**
+     * @notice Whitelisted token information struct
+     * @param tokenAddress the token address
+     * @param minimumTransactionAmount the minimum transaction value
+     */
+    struct AllowedToken {
+        bool isWhitelisted;
+        uint256 minimumTransactionAmount;
     }
 
     // =========================== Events ==============================
 
     /**
-     * @notice Emitted after each payment
-     * @param _transactionId The id of the transaction.
-     * @param _paymentType Whether the payment is a release or a reimbursement.
-     * @param _token The address of the token used for the payment.
-     * @param _amount The amount paid.
-     * @param _serviceId The id of the concerned service.
+     * @notice Emitted after a new service is created
+     * @param id The service ID (incremental)
+     * @param ownerId the talentLayerId of the buyer
+     * @param platformId platform ID on which the Service token was minted
+     * @param dataUri token Id to IPFS URI mapping
      */
-    event Payment(
-        uint256 _transactionId,
-        PaymentType _paymentType,
-        address _token,
-        uint256 _amount,
-        uint256 _serviceId
+    event ServiceCreated(
+        uint256 id,
+        uint256 ownerId,
+        uint256 platformId,
+        string dataUri
     );
 
     /**
-     * @notice Emitted after the total amount of a transaction has been paid. At this moment the service is considered finished.
-     * @param _serviceId The service ID
+     * @notice Emitted after a service is cancelled by the owner
+     * @param id The service ID
      */
-    event PaymentCompleted(uint256 _serviceId);
+    event ServiceCancelled(uint256 id);
 
     /**
-     * @notice Emitted after the protocol fee was updated
-     * @param _protocolEscrowFeeRate The new protocol fee
+     * @notice Emit when Cid is updated for a Service
+     * @param id The service ID
+     * @param dataUri New service Data URI
      */
-    event ProtocolEscrowFeeRateUpdated(uint16 _protocolEscrowFeeRate);
+    event ServiceDetailedUpdated(uint256 indexed id, string dataUri);
 
     /**
-     * @notice Emitted after a platform withdraws its balance
-     * @param _platformId The Platform ID to which the balance is transferred.
-     * @param _token The address of the token used for the payment.
-     * @param _amount The amount transferred.
+     * @notice Emitted after a new proposal is created
+     * @param serviceId The service id
+     * @param ownerId The talentLayerId of the seller who made the proposal
+     * @param dataUri token Id to IPFS URI mapping
+     * @param status proposal status
+     * @param rateToken the token choose for the payment
+     * @param rateAmount the amount of token chosen
+     * @param platformId the platform ID on which the proposal was created
+     * @param expirationDate the timeout for the proposal
      */
-    event FeesClaimed(
-        uint256 _platformId,
-        address indexed _token,
-        uint256 _amount
+    event ProposalCreated(
+        uint256 serviceId,
+        uint256 ownerId,
+        string dataUri,
+        ProposalStatus status,
+        address rateToken,
+        uint256 rateAmount,
+        uint256 platformId,
+        uint256 expirationDate
     );
 
     /**
-     * @notice Emitted after an origin service fee is released to a platform's balance
-     * @param _platformId The platform ID.
-     * @param _serviceId The related service ID.
-     * @param _token The address of the token used for the payment.
-     * @param _amount The amount released.
+     * @notice Emitted after an existing proposal has been updated
+     * @param serviceId The service id
+     * @param ownerId The talentLayerId of the seller who made the proposal
+     * @param dataUri token Id to IPFS URI mapping
+     * @param rateToken the token choose for the payment
+     * @param rateAmount the amount of token chosen
+     * @param expirationDate the timeout for the proposal
      */
-    event OriginServiceFeeRateReleased(
-        uint256 _platformId,
-        uint256 _serviceId,
-        address indexed _token,
-        uint256 _amount
+    event ProposalUpdated(
+        uint256 serviceId,
+        uint256 ownerId,
+        string dataUri,
+        address rateToken,
+        uint256 rateAmount,
+        uint256 expirationDate
     );
 
     /**
-     * @notice Emitted after an origin service fee is released to a platform's balance
-     * @param _platformId The platform ID.
-     * @param _serviceId The related service ID.
-     * @param _token The address of the token used for the payment.
-     * @param _amount The amount released.
+     * @notice Emitted when the contract owner adds or removes a token from the allowed payment tokens list
+     * @param tokenAddress The address of the payment token
+     * @param isWhitelisted Whether the token is allowed or not
+     * @param minimumTransactionAmount The minimum transaction fees for the token
      */
-    event OriginValidatedProposalFeeRateReleased(
-        uint256 _platformId,
-        uint256 _serviceId,
-        address indexed _token,
-        uint256 _amount
-    );
-
-    /**
-     * @notice Emitted when a party has to pay a fee for the dispute or would otherwise be considered as losing.
-     * @param _transactionId The id of the transaction.
-     * @param _party The party who has to pay.
-     */
-    event HasToPayFee(uint256 indexed _transactionId, Party _party);
-
-    /**
-     * @notice Emitted when a party either pays the arbitration fee or gets it reimbursed.
-     * @param _transactionId The id of the transaction.
-     * @param _paymentType Whether the party paid or got reimbursed.
-     * @param _party The party who has paid/got reimbursed the fee.
-     * @param _amount The amount paid/reimbursed
-     */
-    event ArbitrationFeePayment(
-        uint256 indexed _transactionId,
-        ArbitrationFeePaymentType _paymentType,
-        Party _party,
-        uint256 _amount
-    );
-
-    /**
-     * @notice Emitted when a ruling is executed.
-     * @param _transactionId The index of the transaction.
-     * @param _ruling The given ruling.
-     */
-    event RulingExecuted(uint256 indexed _transactionId, uint256 _ruling);
-
-    /**
-     * @notice Emitted when a transaction is created.
-     * @param _transactionId Incremental idenfitifier
-     * @param _senderId The TL Id of the party paying the escrow amount
-     * @param _receiverId The TL Id of the intended receiver of the escrow amount
-     * @param _token The token used for the transaction
-     * @param _amount The amount of the transaction EXCLUDING FEES
-     * @param _serviceId The ID of the associated service
-     * @param _protocolEscrowFeeRate The %fee (per ten thousands) to pay to the protocol's owner
-     * @param _originServiceFeeRate The %fee (per ten thousands) to pay to the platform on which the transaction was created
-     * @param _originValidatedProposalFeeRate the %fee (per ten thousands) to pay to the platform on which the validated proposal was created
-     * @param _arbitrator The address of the contract that can rule on a dispute for the transaction.
-     * @param _arbitratorExtraData Extra data to set up the arbitration.
-     * @param _arbitrationFeeTimeout timeout for parties to pay the arbitration fee
-     */
-    event TransactionCreated(
-        uint256 _transactionId,
-        uint256 _senderId,
-        uint256 _receiverId,
-        address _token,
-        uint256 _amount,
-        uint256 _serviceId,
-        uint256 _proposalId,
-        uint16 _protocolEscrowFeeRate,
-        uint16 _originServiceFeeRate,
-        uint16 _originValidatedProposalFeeRate,
-        Arbitrator _arbitrator,
-        bytes _arbitratorExtraData,
-        uint256 _arbitrationFeeTimeout
-    );
-
-    /**
-     * @notice Emitted when evidence is submitted.
-     * @param _transactionId The id of the transaction.
-     * @param _partyId The party submitting the evidence.
-     * @param _evidenceUri The URI of the evidence.
-     */
-    event EvidenceSubmitted(
-        uint256 indexed _transactionId,
-        uint256 indexed _partyId,
-        string _evidenceUri
-    );
-
-    event TransferWithReferenceAndFee(
+    event AllowedTokenListUpdated(
         address tokenAddress,
-        address to,
-        uint256 amount,
-        bytes indexed paymentReference,
-        uint256 feeAmount,
-        address feeAddress
+        bool isWhitelisted,
+        uint256 minimumTransactionAmount
     );
 
-    // =========================== Declarations ==============================
+    /**
+     * @notice Emitted when the contract owner updates the minimum completion percentage for services
+     * @param minCompletionPercentage The new minimum completion percentage
+     */
+    event MinCompletionPercentageUpdated(uint256 minCompletionPercentage);
+
+    // =========================== Mappings & Variables ==============================
 
     /**
-     * @notice Mapping from transactionId to Transactions
+     * @notice incremental service Id
      */
-    mapping(uint256 => Transaction) private transactions;
+    uint256 public nextServiceId;
 
     /**
-     * @notice Mapping from platformId to Token address to Token Balance
-     *         Represents the amount of ETH or token present on this contract which
-     *         belongs to a platform and can be withdrawn.
-     * @dev Id 0 (PROTOCOL_INDEX) is reserved to the protocol balance
-     * @dev address(0) is reserved to ETH balance
+     * @notice TalentLayerId address
      */
-    mapping(uint256 => mapping(address => uint256))
-        private platformIdToTokenToBalance;
+    ITalentLayerID private tlId;
 
     /**
-     * @notice Instance of TalentLayerService.sol
+     * @notice TalentLayer Platform ID registry contract
      */
-    ITalentLayerService private talentLayerServiceContract;
+    ITalentLayerPlatformID public talentLayerPlatformIdContract;
 
     /**
-     * @notice Instance of TalentLayerID.sol
+     * @notice services mappings index by ID
      */
-    ITalentLayerID private talentLayerIdContract;
+    mapping(uint256 => Service) public services;
 
     /**
-     * @notice Instance of TalentLayerPlatformID.sol
+     * @notice proposals mappings index by service ID and owner TID
      */
-    ITalentLayerPlatformID private talentLayerPlatformIdContract;
+    mapping(uint256 => mapping(uint256 => Proposal)) public proposals;
 
     /**
-     * @notice (Upgradable) Wallet which will receive the protocol fees
+     * @notice TLUserId mappings to number of services created used as a nonce in createService signature
      */
-    address payable public protocolWallet;
+    mapping(uint256 => uint256) public serviceNonce;
 
     /**
-     * @notice Percentage paid to the protocol (per 10,000, upgradable)
+     * @notice TLUserId mappings to number of proposals created
      */
-    uint16 public protocolEscrowFeeRate;
+    mapping(uint256 => uint256) public proposalNonce;
 
     /**
-     * @notice The index of the protocol in the "platformIdToTokenToBalance" mapping
+     * @notice Allowed payment tokens addresses
      */
-    uint8 private constant PROTOCOL_INDEX = 0;
+    mapping(address => AllowedToken) public allowedTokenList;
 
     /**
-     * @notice The fee divider used for every fee rates
+     * @notice Minimum percentage of the proposal amount to be released for considering the service as completed
      */
-    uint16 private constant FEE_DIVIDER = 10000;
+    uint256 public minCompletionPercentage;
 
     /**
-     * @notice Amount of choices available for ruling the disputes
+     * @notice Role granting Escrow permission
      */
-    uint8 constant AMOUNT_OF_CHOICES = 2;
-
-    /**
-     * @notice Ruling id for sender to win the dispute
-     */
-    uint8 constant SENDER_WINS = 1;
-
-    /**
-     * @notice Ruling id for receiver to win the dispute
-     */
-    uint8 constant RECEIVER_WINS = 2;
-
-    /**
-     * @notice One-to-one relationship between the dispute and the transaction.
-     */
-    mapping(uint256 => uint256) public disputeIDtoTransactionID;
-
-    /**
-     * @notice Platform Id counter
-     */
-    CountersUpgradeable.Counter private nextTransactionId;
-
-    ERC20FeeProxy public erc20PaymentProxy;
-    EthereumFeeProxy public ethPaymentProxy;
+    bytes32 public constant ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -354,12 +234,12 @@ contract CustomTalentLayerEscrow is
     // =========================== Modifiers ==============================
 
     /**
-     * @notice Check if the given address is either the owner or the delegate of the given user
+     * @notice Check if the given address is either the owner of the delegate of the given user
      * @param _profileId The TalentLayer ID of the user
      */
     modifier onlyOwnerOrDelegate(uint256 _profileId) {
         require(
-            talentLayerIdContract.isOwnerOrDelegate(_profileId, _msgSender()),
+            tlId.isOwnerOrDelegate(_profileId, _msgSender()),
             "Not owner or delegate"
         );
         _;
@@ -368,912 +248,342 @@ contract CustomTalentLayerEscrow is
     // =========================== Initializers ==============================
 
     /**
-     * @dev Called on contract deployment
-     * @param _talentLayerServiceAddress Contract address to TalentLayerService.sol
-     * @param _talentLayerIDAddress Contract address to TalentLayerID.sol
-     * @param _talentLayerPlatformIDAddress Contract address to TalentLayerPlatformID.sol
-     * @param _protocolWallet Wallet used to receive fees
+     * @notice First initializer function
+     * @param _talentLayerIdAddress TalentLayerId contract address
+     * @param _talentLayerPlatformIdAddress TalentLayerPlatformId contract address
      */
     function initialize(
-        address _talentLayerServiceAddress,
-        address _talentLayerIDAddress,
-        address _talentLayerPlatformIDAddress,
-        address _protocolWallet,
-        ERC20FeeProxy _erc20PaymentProxy,
-        EthereumFeeProxy _ethPaymentProxy
+        address _talentLayerIdAddress,
+        address _talentLayerPlatformIdAddress
     ) public initializer {
         __Ownable_init();
+        __AccessControl_init();
         __UUPSUpgradeable_init();
-
-        talentLayerServiceContract = ITalentLayerService(
-            _talentLayerServiceAddress
-        );
-        talentLayerIdContract = ITalentLayerID(_talentLayerIDAddress);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        tlId = ITalentLayerID(_talentLayerIdAddress);
         talentLayerPlatformIdContract = ITalentLayerPlatformID(
-            _talentLayerPlatformIDAddress
+            _talentLayerPlatformIdAddress
         );
-        protocolWallet = payable(_protocolWallet);
-        // Increment counter to start transaction ids at index 1
-        nextTransactionId.increment();
-
-        updateProtocolEscrowFeeRate(100);
-
-        erc20PaymentProxy = _erc20PaymentProxy;
-        ethPaymentProxy = _ethPaymentProxy;
+        nextServiceId = 1;
+        updateMinCompletionPercentage(30);
     }
 
     // =========================== View functions ==============================
 
     /**
-     * @dev Only the owner of the platform ID or the owner can execute this function
-     * @param _token Token address ("0" for ETH)
-     * @return balance The balance of the platform or the protocol
+     * @notice Returns the whole service data information
+     * @param _serviceId Service identifier
      */
-    function getClaimableFeeBalance(
-        address _token
-    ) external view returns (uint256 balance) {
-        address sender = _msgSender();
-
-        if (owner() == sender) {
-            return platformIdToTokenToBalance[PROTOCOL_INDEX][_token];
-        }
-        uint256 platformId = talentLayerPlatformIdContract.ids(sender);
-        talentLayerPlatformIdContract.isValid(platformId);
-        return platformIdToTokenToBalance[platformId][_token];
+    function getService(
+        uint256 _serviceId
+    ) external view returns (Service memory) {
+        require(_serviceId < nextServiceId, "This service doesn't exist");
+        return services[_serviceId];
     }
 
     /**
-     * @notice Called to get the details of a transaction
-     * @dev Only the transaction sender or receiver can call this function
-     * @param _transactionId Id of the transaction
-     * @return transaction The transaction details
+     * @notice Returns the specific proposal for the attached service
+     * @param _serviceId Service identifier
+     * @param _proposalId Proposal identifier
      */
-    function getTransactionDetails(
-        uint256 _transactionId
-    ) external view returns (Transaction memory) {
-        Transaction memory transaction = transactions[_transactionId];
-        require(
-            transaction.id < nextTransactionId.current(),
-            "Invalid transaction id"
-        );
-
-        address sender = _msgSender();
-        require(
-            sender == transaction.sender || sender == transaction.receiver,
-            "You are not related to this transaction"
-        );
-        return transaction;
-    }
-
-    // =========================== Owner functions ==============================
-
-    /**
-     * @notice Updates the Protocol Fee rate
-     * @dev Only the owner can call this function
-     * @param _protocolEscrowFeeRate The new protocol fee
-     */
-    function updateProtocolEscrowFeeRate(
-        uint16 _protocolEscrowFeeRate
-    ) public onlyOwner {
-        protocolEscrowFeeRate = _protocolEscrowFeeRate;
-        emit ProtocolEscrowFeeRateUpdated(_protocolEscrowFeeRate);
+    function getProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) external view returns (Proposal memory) {
+        return proposals[_serviceId][_proposalId];
     }
 
     /**
-     * @notice Updates the Protocol wallet that receive fees
-     * @dev Only the owner can call this function
-     * @param _protocolWallet The new wallet address
+     * @notice Returns the specific service and the proposal linked to it
+     * @param _serviceId Service identifier
+     * @param _proposalId Proposal identifier
      */
-    function updateProtocolWallet(
-        address payable _protocolWallet
-    ) external onlyOwner {
-        protocolWallet = _protocolWallet;
+    function getServiceAndProposal(
+        uint256 _serviceId,
+        uint256 _proposalId
+    ) external view returns (Service memory, Proposal memory) {
+        Service memory service = services[_serviceId];
+        Proposal memory proposal = proposals[_serviceId][_proposalId];
+        return (service, proposal);
     }
 
     /**
-     * @dev Pauses the creation of transaction, releases and reimbursements.
+     * @notice Indicates whether the token in parameter is allowed for payment
+     * @param _tokenAddress Token address
      */
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    /**
-     * @dev Unpauses the creation of transaction, releases and reimbursements.
-     */
-    function unpause() external onlyOwner {
-        _unpause();
+    function isTokenAllowed(
+        address _tokenAddress
+    ) external view returns (bool) {
+        return allowedTokenList[_tokenAddress].isWhitelisted;
     }
 
     // =========================== User functions ==============================
 
     /**
-     * @dev Validates a proposal for a service by locking token into escrow.
-     * @param _serviceId Id of the service that the sender created and the proposal was made for.
-     * @param _proposalId Id of the proposal that the transaction validates.
-     * @param _metaEvidence Link to the meta-evidence.
-     * @param _originDataUri dataURI of the validated proposal
+     * @notice Allows a buyer to initiate an open service
+     * @param _profileId The TalentLayer ID of the user owner of the service
+     * @param _platformId platform ID on which the Service token was created
+     * @param _dataUri IPFS URI of the offchain data of the service
+     * @param _signature optional platform signature to allow the operation
      */
-    function createTransaction(
-        uint256 _serviceId,
-        uint256 _proposalId,
-        bytes memory _paymentReference,
-        string memory _metaEvidence,
-        string memory _originDataUri
-    ) external payable whenNotPaused returns (uint256) {
-        (
-            ITalentLayerService.Service memory service,
-            ITalentLayerService.Proposal memory proposal
-        ) = talentLayerServiceContract.getServiceAndProposal(
-                _serviceId,
-                _proposalId
-            );
-        (address sender, address receiver) = talentLayerIdContract.ownersOf(
-            service.ownerId,
-            proposal.ownerId
-        );
+    function createService(
+        uint256 _profileId,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) public payable onlyOwnerOrDelegate(_profileId) returns (uint256) {
+        _validateService(_profileId, _platformId, _dataUri, _signature);
 
-        ITalentLayerPlatformID.Platform
-            memory originServiceCreationPlatform = talentLayerPlatformIdContract
-                .getPlatform(service.platformId);
-        ITalentLayerPlatformID.Platform
-            memory originProposalCreationPlatform = service.platformId !=
-                proposal.platformId
-                ? talentLayerPlatformIdContract.getPlatform(proposal.platformId)
-                : originServiceCreationPlatform;
+        uint256 id = nextServiceId;
+        nextServiceId++;
 
-        uint256 transactionAmount = _calculateTotalWithFees(
-            proposal.rateAmount,
-            originServiceCreationPlatform.originServiceFeeRate,
-            originProposalCreationPlatform.originValidatedProposalFeeRate
-        );
+        Service storage service = services[id];
+        service.status = Status.Opened;
+        service.ownerId = _profileId;
+        service.dataUri = _dataUri;
+        service.platformId = _platformId;
 
-        if (proposal.rateToken == address(0)) {
-            require(msg.value == transactionAmount, "Non-matching funds");
-        } else {
-            require(msg.value == 0, "Non-matching funds");
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
         }
+        serviceNonce[_profileId]++;
 
-        require(_msgSender() == sender, "Access denied");
-        require(proposal.ownerId == _proposalId, "Incorrect proposal ID");
-        require(proposal.expirationDate >= block.timestamp, "Proposal expired");
-        require(
-            service.status == ITalentLayerService.Status.Opened,
-            "Service status not open"
-        );
-        require(
-            proposal.status == ITalentLayerService.ProposalStatus.Pending,
-            "Proposal status not pending"
-        );
-        require(bytes(_metaEvidence).length == 46, "Invalid cid");
-        require(
-            keccak256(abi.encodePacked(proposal.dataUri)) ==
-                keccak256(abi.encodePacked(_originDataUri)),
-            "Proposal dataUri has changed"
+        emit ServiceCreated(id, _profileId, _platformId, _dataUri);
+
+        return id;
+    }
+
+    /**
+     * @notice Allows an seller to propose his service for a service
+     * @param _profileId The TalentLayer ID of the user owner of the proposal
+     * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _platformId platform ID from where the proposal is created
+     * @param _expirationDate the time before the proposal is automatically validated
+     * @param _signature optional platform signature to allow the operation
+     */
+    function createProposal(
+        uint256 _profileId,
+        uint256 _serviceId,
+        address _rateToken,
+        uint256 _rateAmount,
+        uint256 _platformId,
+        string calldata _dataUri,
+        uint256 _expirationDate,
+        bytes calldata _signature
+    ) public payable onlyOwnerOrDelegate(_profileId) {
+        _validateProposal(
+            _profileId,
+            _serviceId,
+            _rateToken,
+            _rateAmount,
+            _platformId,
+            _dataUri,
+            _signature
         );
 
-        uint256 transactionId = nextTransactionId.current();
-        transactions[transactionId] = Transaction({
-            id: transactionId,
-            sender: sender,
-            receiver: receiver,
-            token: proposal.rateToken,
-            amount: proposal.rateAmount,
-            releasedAmount: 0,
-            serviceId: _serviceId,
-            proposalId: _proposalId,
-            protocolEscrowFeeRate: protocolEscrowFeeRate,
-            originServiceFeeRate: originServiceCreationPlatform
-                .originServiceFeeRate,
-            originValidatedProposalFeeRate: originProposalCreationPlatform
-                .originValidatedProposalFeeRate,
-            disputeId: 0,
-            senderFee: 0,
-            receiverFee: 0,
-            lastInteraction: block.timestamp,
-            status: Status.NoDispute,
-            arbitrator: originServiceCreationPlatform.arbitrator,
-            arbitratorExtraData: originServiceCreationPlatform
-                .arbitratorExtraData,
-            arbitrationFeeTimeout: originServiceCreationPlatform
-                .arbitrationFeeTimeout,
-            paymentReference: _paymentReference
+        proposals[_serviceId][_profileId] = Proposal({
+            status: ProposalStatus.Pending,
+            ownerId: _profileId,
+            rateToken: _rateToken,
+            rateAmount: 1, // to avoid division by zero
+            platformId: _platformId,
+            dataUri: _dataUri,
+            expirationDate: _expirationDate
         });
 
-        nextTransactionId.increment();
+        if (serviceNonce[_profileId] == 0 && proposalNonce[_profileId] == 0) {
+            tlId.setHasActivity(_profileId);
+        }
+        proposalNonce[_profileId]++;
 
-        talentLayerServiceContract.afterDeposit(
+        emit ProposalCreated(
             _serviceId,
-            _proposalId,
-            transactionId
-        );
-
-        if (proposal.rateToken != address(0)) {
-            erc20PaymentProxy.transferFromWithReferenceAndFee(
-                proposal.rateToken,
-                address(this),
-                transactionAmount,
-                transactions[transactionId].paymentReference,
-                0,
-                address(0)
-            );
-        }
-
-        _afterCreateTransaction(
-            service.ownerId,
-            proposal.ownerId,
-            transactionId,
-            _metaEvidence
-        );
-
-        return transactionId;
-    }
-
-    /**
-     * @notice Allows the sender to release locked-in escrow value to the intended recipient.
-     *         The amount released must not include the fees.
-     * @param _profileId The TalentLayer ID of the user
-     * @param _transactionId Id of the transaction to release escrow value for.
-     * @param _amount Value to be released without fees. Should not be more than amount locked in.
-     */
-    function release(
-        uint256 _profileId,
-        uint256 _transactionId,
-        uint256 _amount
-    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
-        _validatePayment(
-            _transactionId,
-            PaymentType.Release,
             _profileId,
-            _amount
+            _dataUri,
+            ProposalStatus.Pending,
+            _rateToken,
+            0,
+            _platformId,
+            _expirationDate
         );
-
-        Transaction storage transaction = transactions[_transactionId];
-        transaction.amount -= _amount;
-        transaction.releasedAmount += _amount;
-
-        // emit TransferWithReferenceAndFee(
-        //     transaction.token,
-        //     transaction.receiver,
-        //     _amount,
-        //     transaction.paymentReference,
-        //     0,
-        //     address(0)
-        // );
-
-        _release(_transactionId, _amount);
     }
 
     /**
-     * @notice Allows the intended receiver to return locked-in escrow value back to the sender.
-     *         The amount reimbursed must not include the fees.
+     * @notice Allows the owner to update his own proposal for a given service
      * @param _profileId The TalentLayer ID of the user
-     * @param _transactionId Id of the transaction to reimburse escrow value for.
-     * @param _amount Value to be reimbursed without fees. Should not be more than amount locked in.
+     * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _expirationDate the time before the proposal is automatically validated
      */
-    function reimburse(
+    function updateProposal(
         uint256 _profileId,
-        uint256 _transactionId,
-        uint256 _amount
-    ) external whenNotPaused onlyOwnerOrDelegate(_profileId) {
-        _validatePayment(
-            _transactionId,
-            PaymentType.Reimburse,
-            _profileId,
-            _amount
-        );
-
-        Transaction storage transaction = transactions[_transactionId];
-        transaction.amount -= _amount;
-
-        // emit TransferWithReferenceAndFee(
-        //     transaction.token,
-        //     transaction.sender,
-        //     _amount,
-        //     transaction.paymentReference,
-        //     0,
-        //     address(0)
-        // );
-
-        _reimburse(_transactionId, _amount);
-    }
-
-    /**
-     * @notice Allows the sender of the transaction to pay the arbitration fee to raise a dispute.
-     * Note that the arbitrator can have createDispute throw, which will make this function throw and therefore lead to a party being timed-out.
-     * This is not a vulnerability as the arbitrator can rule in favor of one party anyway.
-     * @param _transactionId Id of the transaction.
-     */
-    function payArbitrationFeeBySender(uint256 _transactionId) public payable {
-        Transaction storage transaction = transactions[_transactionId];
-
-        require(
-            address(transaction.arbitrator) != address(0),
-            "Arbitrator not set"
-        );
-        require(
-            transaction.status < Status.DisputeCreated,
-            "Dispute has already been created or because the transaction has been executed"
-        );
-        require(
-            _msgSender() == transaction.sender,
-            "The caller must be the sender"
-        );
-
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(
-            transaction.arbitratorExtraData
-        );
-        transaction.senderFee += msg.value;
-        // The total fees paid by the sender should be at least the arbitration cost.
-        require(
-            transaction.senderFee == arbitrationCost,
-            "The sender fee must be equal to the arbitration cost"
-        );
-
-        transaction.lastInteraction = block.timestamp;
-
-        emit ArbitrationFeePayment(
-            _transactionId,
-            ArbitrationFeePaymentType.Pay,
-            Party.Sender,
-            msg.value
-        );
-
-        // The receiver still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
-        if (transaction.receiverFee < arbitrationCost) {
-            transaction.status = Status.WaitingReceiver;
-            emit HasToPayFee(_transactionId, Party.Receiver);
-        } else {
-            // The receiver has also paid the fee. We create the dispute.
-            _raiseDispute(_transactionId, arbitrationCost);
-        }
-    }
-
-    /**
-     * @notice Allows the receiver of the transaction to pay the arbitration fee to raise a dispute.
-     * Note that this function mirrors payArbitrationFeeBySender.
-     * @param _transactionId Id of the transaction.
-     */
-    function payArbitrationFeeByReceiver(
-        uint256 _transactionId
-    ) public payable {
-        Transaction storage transaction = transactions[_transactionId];
-
-        require(
-            address(transaction.arbitrator) != address(0),
-            "Arbitrator not set"
-        );
-        require(
-            transaction.status < Status.DisputeCreated,
-            "Dispute has already been created or because the transaction has been executed"
-        );
-        require(
-            _msgSender() == transaction.receiver,
-            "The caller must be the receiver"
-        );
-
-        uint256 arbitrationCost = transaction.arbitrator.arbitrationCost(
-            transaction.arbitratorExtraData
-        );
-        transaction.receiverFee += msg.value;
-        // The total fees paid by the receiver should be at least the arbitration cost.
-        require(
-            transaction.receiverFee == arbitrationCost,
-            "The receiver fee must be equal to the arbitration cost"
-        );
-
-        transaction.lastInteraction = block.timestamp;
-
-        emit ArbitrationFeePayment(
-            _transactionId,
-            ArbitrationFeePaymentType.Pay,
-            Party.Receiver,
-            msg.value
-        );
-
-        // The sender still has to pay. This can also happen if he has paid, but arbitrationCost has increased.
-        if (transaction.senderFee < arbitrationCost) {
-            transaction.status = Status.WaitingSender;
-            emit HasToPayFee(_transactionId, Party.Sender);
-        } else {
-            // The sender has also paid the fee. We create the dispute.
-            _raiseDispute(_transactionId, arbitrationCost);
-        }
-    }
-
-    /**
-     * @notice If one party fails to pay the arbitration fee in time, the other can call this function and will win the case
-     * @param _transactionId Id of the transaction.
-     */
-    function arbitrationFeeTimeout(uint256 _transactionId) public {
-        Transaction storage transaction = transactions[_transactionId];
-
-        require(
-            block.timestamp - transaction.lastInteraction >=
-                transaction.arbitrationFeeTimeout,
-            "Timeout time has not passed yet"
-        );
-
-        if (transaction.status == Status.WaitingSender) {
-            if (transaction.senderFee != 0) {
-                uint256 senderFee = transaction.senderFee;
-                transaction.senderFee = 0;
-                payable(transaction.sender).call{value: senderFee}("");
-            }
-            _executeRuling(_transactionId, RECEIVER_WINS);
-        } else if (transaction.status == Status.WaitingReceiver) {
-            if (transaction.receiverFee != 0) {
-                uint256 receiverFee = transaction.receiverFee;
-                transaction.receiverFee = 0;
-                payable(transaction.receiver).call{value: receiverFee}("");
-            }
-            _executeRuling(_transactionId, SENDER_WINS);
-        }
-    }
-
-    /**
-     * @notice Allows a party to submit a reference to evidence.
-     * @param _profileId The TalentLayer ID of the user
-     * @param _transactionId The index of the transaction.
-     * @param _evidence A link to an evidence using its URI.
-     */
-    function submitEvidence(
-        uint256 _profileId,
-        uint256 _transactionId,
-        string memory _evidence
+        uint256 _serviceId,
+        address _rateToken,
+        uint256 _rateAmount,
+        string calldata _dataUri,
+        uint256 _expirationDate
     ) public onlyOwnerOrDelegate(_profileId) {
-        require(bytes(_evidence).length == 46, "Invalid cid");
-        Transaction storage transaction = transactions[_transactionId];
-
         require(
-            address(transaction.arbitrator) != address(0),
-            "Arbitrator not set"
+            allowedTokenList[_rateToken].isWhitelisted,
+            "Token not allowed"
         );
 
-        address party = talentLayerIdContract.ownerOf(_profileId);
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][_profileId];
+        require(service.status == Status.Opened, "Service not opened");
+        require(proposal.ownerId == _profileId, "Not the owner");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
         require(
-            party == transaction.sender || party == transaction.receiver,
-            "The caller must be the sender or the receiver or their delegates"
-        );
-        require(
-            transaction.status < Status.Resolved,
-            "Must not send evidence if the dispute is resolved"
-        );
-
-        emit Evidence(transaction.arbitrator, _transactionId, party, _evidence);
-        emit EvidenceSubmitted(_transactionId, _profileId, _evidence);
-    }
-
-    /**
-     * @notice Appeals an appealable ruling, paying the appeal fee to the arbitrator.
-     * Note that no checks are required as the checks are done by the arbitrator.
-     *
-     * @param _transactionId Id of the transaction.
-     */
-    function appeal(uint256 _transactionId) public payable {
-        Transaction storage transaction = transactions[_transactionId];
-
-        require(
-            address(transaction.arbitrator) != address(0),
-            "Arbitrator not set"
-        );
-
-        transaction.arbitrator.appeal{value: msg.value}(
-            transaction.disputeId,
-            transaction.arbitratorExtraData
-        );
-    }
-
-    // =========================== Platform functions ==============================
-
-    /**
-     * @notice Allows a platform owner to claim its tokens & / or ETH balance.
-     * @param _platformId The ID of the platform claiming the balance.
-     * @param _tokenAddress The address of the Token contract (address(0) if balance in ETH).
-     * Emits a BalanceTransferred event
-     */
-    function claim(
-        uint256 _platformId,
-        address _tokenAddress
-    ) external whenNotPaused {
-        address payable recipient;
-
-        if (owner() == _msgSender()) {
-            require(_platformId == PROTOCOL_INDEX, "Access denied");
-            recipient = protocolWallet;
-        } else {
-            talentLayerPlatformIdContract.isValid(_platformId);
-            recipient = payable(
-                talentLayerPlatformIdContract.ownerOf(_platformId)
-            );
-        }
-
-        uint256 amount = platformIdToTokenToBalance[_platformId][_tokenAddress];
-        require(amount > 0, "nothing to claim");
-        platformIdToTokenToBalance[_platformId][_tokenAddress] = 0;
-        _safeTransferBalance(recipient, _tokenAddress, amount);
-
-        emit FeesClaimed(_platformId, _tokenAddress, amount);
-    }
-
-    // =========================== Arbitrator functions ==============================
-
-    /**
-     * @notice Allows the arbitrator to give a ruling for a dispute.
-     * @param _disputeID The ID of the dispute in the Arbitrator contract.
-     * @param _ruling Ruling given by the arbitrator. Note that 0 is reserved for "Not able/wanting to make a decision".
-     */
-    function rule(uint256 _disputeID, uint256 _ruling) public {
-        address sender = _msgSender();
-        uint256 transactionId = disputeIDtoTransactionID[_disputeID];
-        Transaction storage transaction = transactions[transactionId];
-
-        require(
-            sender == address(transaction.arbitrator),
-            "The caller must be the arbitrator"
+            proposal.status != ProposalStatus.Validated,
+            "Already validated"
         );
         require(
-            transaction.status == Status.DisputeCreated,
-            "The dispute has already been resolved"
-        );
-
-        emit Ruling(Arbitrator(sender), _disputeID, _ruling);
-
-        _executeRuling(transactionId, _ruling);
-    }
-
-    // =========================== Internal functions ==============================
-
-    /**
-     * @notice Creates a dispute, paying the arbitration fee to the arbitrator. Parties are refund if
-     *         they overpaid for the arbitration fee.
-     * @param _transactionId Id of the transaction.
-     * @param _arbitrationCost Amount to pay the arbitrator.
-     */
-    function _raiseDispute(
-        uint256 _transactionId,
-        uint256 _arbitrationCost
-    ) internal {
-        Transaction storage transaction = transactions[_transactionId];
-        transaction.status = Status.DisputeCreated;
-        Arbitrator arbitrator = transaction.arbitrator;
-
-        transaction.disputeId = arbitrator.createDispute{
-            value: _arbitrationCost
-        }(AMOUNT_OF_CHOICES, transaction.arbitratorExtraData);
-        disputeIDtoTransactionID[transaction.disputeId] = _transactionId;
-        emit Dispute(
-            arbitrator,
-            transaction.disputeId,
-            _transactionId,
-            _transactionId
-        );
-
-        // Refund sender if it overpaid.
-        if (transaction.senderFee > _arbitrationCost) {
-            uint256 extraFeeSender = transaction.senderFee - _arbitrationCost;
-            transaction.senderFee = _arbitrationCost;
-            payable(transaction.sender).call{value: extraFeeSender}("");
-            emit ArbitrationFeePayment(
-                _transactionId,
-                ArbitrationFeePaymentType.Reimburse,
-                Party.Sender,
-                msg.value
-            );
-        }
-
-        // Refund receiver if it overpaid.
-        if (transaction.receiverFee > _arbitrationCost) {
-            uint256 extraFeeReceiver = transaction.receiverFee -
-                _arbitrationCost;
-            transaction.receiverFee = _arbitrationCost;
-            payable(transaction.receiver).call{value: extraFeeReceiver}("");
-            emit ArbitrationFeePayment(
-                _transactionId,
-                ArbitrationFeePaymentType.Reimburse,
-                Party.Receiver,
-                msg.value
-            );
-        }
-    }
-
-    /**
-     * @notice Executes a ruling of a dispute. Sends the funds and reimburses the arbitration fee to the winning party.
-     * @param _transactionId The index of the transaction.
-     * @param _ruling Ruling given by the arbitrator.
-     *                0: Refused to rule, split amount equally between sender and receiver.
-     *                1: Reimburse the sender
-     *                2: Pay the receiver
-     */
-    function _executeRuling(uint256 _transactionId, uint256 _ruling) internal {
-        Transaction storage transaction = transactions[_transactionId];
-        require(_ruling <= AMOUNT_OF_CHOICES, "Invalid ruling");
-
-        address payable sender = payable(transaction.sender);
-        address payable receiver = payable(transaction.receiver);
-        uint256 amount = transaction.amount;
-        uint256 senderFee = transaction.senderFee;
-        uint256 receiverFee = transaction.receiverFee;
-
-        transaction.amount = 0;
-        transaction.senderFee = 0;
-        transaction.receiverFee = 0;
-        transaction.status = Status.Resolved;
-
-        // Send the funds to the winner and reimburse the arbitration fee.
-        if (_ruling == SENDER_WINS) {
-            sender.call{value: senderFee}("");
-            _reimburse(_transactionId, amount);
-        } else if (_ruling == RECEIVER_WINS) {
-            receiver.call{value: receiverFee}("");
-            _release(_transactionId, amount);
-        } else {
-            // If no ruling is given split funds in half
-            uint256 splitFeeAmount = senderFee / 2;
-            uint256 splitTransactionAmount = amount / 2;
-
-            _reimburse(_transactionId, splitTransactionAmount);
-            _release(_transactionId, splitTransactionAmount);
-
-            sender.call{value: splitFeeAmount}("");
-            receiver.call{value: splitFeeAmount}("");
-        }
-
-        emit RulingExecuted(_transactionId, _ruling);
-    }
-
-    /**
-     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
-     * {upgradeTo} and {upgradeToAndCall}.
-     * @param newImplementation address of the new contract implementation
-     */
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOwner {}
-
-    // =========================== Private functions ==============================
-
-    /**
-     * @notice Emits the events related to the creation of a transaction.
-     * @param _senderId The TL ID of the sender
-     * @param _receiverId The TL ID of the receiver
-     * @param _transactionId The ID of the transavtion
-     * @param _metaEvidence The meta evidence of the transaction
-     */
-    function _afterCreateTransaction(
-        uint256 _senderId,
-        uint256 _receiverId,
-        uint256 _transactionId,
-        string memory _metaEvidence
-    ) internal {
-        Transaction storage transaction = transactions[_transactionId];
-
-        emit TransactionCreated(
-            _transactionId,
-            _senderId,
-            _receiverId,
-            transaction.token,
-            transaction.amount,
-            transaction.serviceId,
-            transaction.proposalId,
-            protocolEscrowFeeRate,
-            transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate,
-            transaction.arbitrator,
-            transaction.arbitratorExtraData,
-            transaction.arbitrationFeeTimeout
-        );
-        emit MetaEvidence(_transactionId, _metaEvidence);
-    }
-
-    /**
-     * @notice Used to release part of the escrow payment to the receiver.
-     * @dev The release of an amount will also trigger the release of the fees to the platform's balances & the protocol fees.
-     * @param _transactionId The transaction to release the escrow value for
-     * @param _amount The amount to release
-     */
-    function _release(uint256 _transactionId, uint256 _amount) private {
-        _distributeFees(_transactionId, _amount);
-
-        Transaction storage transaction = transactions[_transactionId];
-        // _safeTransferBalance(payable(transaction.receiver), transaction.token, _amount);
-
-        erc20PaymentProxy.transferFromWithReferenceAndFee(
-            transaction.token,
-            payable(transaction.receiver),
-            _amount,
-            transaction.paymentReference,
-            0,
-            address(0)
-        );
-
-        _afterPayment(_transactionId, PaymentType.Release, _amount);
-    }
-
-    /**
-     * @notice Used to reimburse part of the escrow payment to the sender.
-     * @dev Fees linked to the amount reimbursed will be automatically calculated and send back to the sender in the same transfer
-     * @param _transactionId The transaction
-     * @param _amount The amount to reimburse without fees
-     */
-    function _reimburse(uint256 _transactionId, uint256 _amount) private {
-        Transaction storage transaction = transactions[_transactionId];
-        uint256 totalReleaseAmount = _calculateTotalWithFees(
-            _amount,
-            transaction.originServiceFeeRate,
-            transaction.originValidatedProposalFeeRate
-        );
-        // _safeTransferBalance(payable(transaction.sender), transaction.token, totalReleaseAmount);
-        erc20PaymentProxy.transferFromWithReferenceAndFee(
-            transaction.token,
-            payable(transaction.sender),
-            totalReleaseAmount,
-            transaction.paymentReference,
-            0,
-            address(0)
-        );
-        _afterPayment(_transactionId, PaymentType.Reimburse, _amount);
-    }
-
-    /**
-     * @notice Distribute fees to the platform's balances & the protocol after a fund release
-     * @param _transactionId The transaction linked to the payment
-     * @param _releaseAmount The amount released
-     */
-    function _distributeFees(
-        uint256 _transactionId,
-        uint256 _releaseAmount
-    ) private {
-        Transaction storage transaction = transactions[_transactionId];
-        (
-            ITalentLayerService.Service memory service,
-            ITalentLayerService.Proposal memory proposal
-        ) = talentLayerServiceContract.getServiceAndProposal(
-                transaction.serviceId,
-                transaction.proposalId
-            );
-
-        uint256 originServiceCreationPlatformId = service.platformId;
-        uint256 originValidatedProposalPlatformId = proposal.platformId;
-
-        uint256 protocolEscrowFeeRateAmount = (transaction
-            .protocolEscrowFeeRate * _releaseAmount) / FEE_DIVIDER;
-        uint256 originServiceFeeRate = (transaction.originServiceFeeRate *
-            _releaseAmount) / FEE_DIVIDER;
-        uint256 originValidatedProposalFeeRate = (transaction
-            .originValidatedProposalFeeRate * _releaseAmount) / FEE_DIVIDER;
-
-        platformIdToTokenToBalance[PROTOCOL_INDEX][
-            transaction.token
-        ] += protocolEscrowFeeRateAmount;
-        platformIdToTokenToBalance[originServiceCreationPlatformId][
-            transaction.token
-        ] += originServiceFeeRate;
-        platformIdToTokenToBalance[originValidatedProposalPlatformId][
-            transaction.token
-        ] += originValidatedProposalFeeRate;
-
-        emit OriginServiceFeeRateReleased(
-            originServiceCreationPlatformId,
-            transaction.serviceId,
-            transaction.token,
-            originServiceFeeRate
-        );
-        emit OriginValidatedProposalFeeRateReleased(
-            originValidatedProposalPlatformId,
-            transaction.serviceId,
-            transaction.token,
-            originServiceFeeRate
-        );
-    }
-
-    /**
-     * @notice Used to validate a realease or a reimburse payment
-     * @param _transactionId The transaction linked to the payment
-     * @param _paymentType The type of payment to validate
-     * @param _profileId The profileId of the msgSender
-     * @param _amount The amount to release
-     */
-    function _validatePayment(
-        uint256 _transactionId,
-        PaymentType _paymentType,
-        uint256 _profileId,
-        uint256 _amount
-    ) private view {
-        Transaction storage _transaction = transactions[_transactionId];
-        if (_paymentType == PaymentType.Release) {
-            require(
-                _transaction.sender ==
-                    talentLayerIdContract.ownerOf(_profileId),
-                "Access denied"
-            );
-        } else if (_paymentType == PaymentType.Reimburse) {
-            require(
-                _transaction.receiver ==
-                    talentLayerIdContract.ownerOf(_profileId),
-                "Access denied"
-            );
-        }
-
-        require(
-            _transaction.id < nextTransactionId.current(),
-            "Invalid transaction id"
-        );
-        require(
-            _transaction.status == Status.NoDispute,
-            "The transaction shouldn't be disputed"
-        );
-        require(_transaction.amount >= _amount, "Insufficient funds");
-        require(
-            _amount >= FEE_DIVIDER ||
-                (_amount < FEE_DIVIDER && _amount == _transaction.amount),
+            _rateAmount >=
+                allowedTokenList[_rateToken].minimumTransactionAmount,
             "Amount too low"
         );
-    }
 
-    /**
-     * @notice Used to trigger events after a payment and to complete a service when the payment is full
-     * @param _transactionId The transaction linked to the payment
-     * @param _paymentType The type of the payment
-     * @param _releaseAmount The amount of the transaction
-     */
-    function _afterPayment(
-        uint256 _transactionId,
-        PaymentType _paymentType,
-        uint256 _releaseAmount
-    ) private {
-        Transaction storage transaction = transactions[_transactionId];
-        emit Payment(
-            transaction.id,
-            _paymentType,
-            transaction.token,
-            _releaseAmount,
-            transaction.serviceId
+        proposal.rateToken = _rateToken;
+        proposal.rateAmount = _rateAmount;
+        proposal.dataUri = _dataUri;
+        proposal.expirationDate = _expirationDate;
+
+        emit ProposalUpdated(
+            _serviceId,
+            _profileId,
+            _dataUri,
+            _rateToken,
+            0,
+            _expirationDate
         );
-
-        if (transaction.amount == 0) {
-            talentLayerServiceContract.afterFullPayment(
-                transaction.serviceId,
-                transaction.releasedAmount
-            );
-            emit PaymentCompleted(transaction.serviceId);
-        }
     }
 
     /**
-     * @notice Used to transfer the token or ETH balance from the escrow contract to a recipient's address.
-     * @param _recipient The address to transfer the balance to
-     * @param _tokenAddress The token address
-     * @param _amount The amount to transfer
+     * @notice Allow the escrow contract to upgrade the Service state after a deposit has been done
+     * @param _serviceId Service identifier
+     * @param _proposalId The chosen proposal id for this service
+     * @param _transactionId The escrow transaction Id
      */
-    function _safeTransferBalance(
-        address payable _recipient,
+    function afterDeposit(
+        uint256 _serviceId,
+        uint256 _proposalId,
+        uint256 _transactionId
+    ) external onlyRole(ESCROW_ROLE) {
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][_proposalId];
+
+        service.status = Status.Confirmed;
+        service.acceptedProposalId = proposal.ownerId;
+        service.transactionId = _transactionId;
+        proposal.status = ProposalStatus.Validated;
+    }
+
+    /**
+     * @notice Allows the contract owner to add or remove a token from the allowed payment tokens list
+     * @param _tokenAddress The address of the payment token
+     * @param _isWhitelisted Whether the token is allowed or not
+     * @param _minimumTransactionAmount the minimum amount of token allowed for a transaction
+     * @dev Only the contract owner can call this function. The owner can't never remove the Ox address
+     */
+    function updateAllowedTokenList(
         address _tokenAddress,
-        uint256 _amount
-    ) private {
-        if (address(0) == _tokenAddress) {
-            _recipient.call{value: _amount}("");
+        bool _isWhitelisted,
+        uint256 _minimumTransactionAmount
+    ) public onlyOwner {
+        if (_tokenAddress == address(0) && !_isWhitelisted) {
+            revert("Owner can't remove Ox address");
+        }
+        allowedTokenList[_tokenAddress].isWhitelisted = _isWhitelisted;
+        allowedTokenList[_tokenAddress]
+            .minimumTransactionAmount = _minimumTransactionAmount;
+
+        emit AllowedTokenListUpdated(
+            _tokenAddress,
+            _isWhitelisted,
+            _minimumTransactionAmount
+        );
+    }
+
+    /**
+     * @notice Allow the escrow contract to upgrade the Service state after the full payment has been received by the seller
+     * @param _serviceId Service identifier
+     * @param _releasedAmount The total amount of the payment released to the seller
+     */
+    function afterFullPayment(
+        uint256 _serviceId,
+        uint256 _releasedAmount
+    ) external onlyRole(ESCROW_ROLE) {
+        Service storage service = services[_serviceId];
+        Proposal storage proposal = proposals[_serviceId][
+            service.acceptedProposalId
+        ];
+
+        uint256 releasedPercentage = (_releasedAmount * 100) /
+            proposal.rateAmount;
+        if (releasedPercentage >= minCompletionPercentage) {
+            service.status = Status.Finished;
         } else {
-            IERC20(_tokenAddress).transfer(_recipient, _amount);
+            service.status = Status.Uncompleted;
         }
     }
 
     /**
-     * @notice Utility function to calculate the total amount to be paid by the buyer to validate a proposal.
-     * @param _amount The core escrow amount
-     * @param _originServiceFeeRate the %fee (per ten thousands) asked by the platform for each service created on the platform
-     * @param _originValidatedProposalFeeRate the %fee (per ten thousands) asked by the platform for each validates service on the platform
-     * @return totalEscrowAmount The total amount to be paid by the buyer (including all fees + escrow) The amount to transfer
+     * @notice Update Service URI data
+     * @param _profileId The TalentLayer ID of the user, owner of the service
+     * @param _serviceId, Service ID to update
+     * @param _dataUri New IPFS URI
      */
-    function _calculateTotalWithFees(
-        uint256 _amount,
-        uint16 _originServiceFeeRate,
-        uint16 _originValidatedProposalFeeRate
-    ) private view returns (uint256 totalEscrowAmount) {
-        return
-            _amount +
-            (((_amount * protocolEscrowFeeRate) +
-                (_amount * _originServiceFeeRate) +
-                (_amount * _originValidatedProposalFeeRate)) / FEE_DIVIDER);
+    function updateServiceData(
+        uint256 _profileId,
+        uint256 _serviceId,
+        string calldata _dataUri
+    ) public onlyOwnerOrDelegate(_profileId) {
+        Service storage service = services[_serviceId];
+        require(service.ownerId == _profileId, "Not the owner");
+        require(service.status == Status.Opened, "status must be opened");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        service.dataUri = _dataUri;
+
+        emit ServiceDetailedUpdated(_serviceId, _dataUri);
+    }
+
+    /**
+     * @notice Cancel an open Service
+     * @param _profileId The TalentLayer ID of the user, owner of the service
+     * @param _serviceId Service ID to cancel
+     */
+    function cancelService(
+        uint256 _profileId,
+        uint256 _serviceId
+    ) public onlyOwnerOrDelegate(_profileId) {
+        Service storage service = services[_serviceId];
+
+        require(service.ownerId == _profileId, "not the owner");
+        require(service.status == Status.Opened, "status must be opened");
+        service.status = Status.Cancelled;
+
+        emit ServiceCancelled(_serviceId);
+    }
+
+    // =========================== Owner functions ==============================
+
+    /**
+     * @notice Allows the contract owner to update the minimum completion percentage for services
+     * @param _minCompletionPercentage The new completion percentage
+     * @dev Only the contract owner can call this function
+     */
+    function updateMinCompletionPercentage(
+        uint256 _minCompletionPercentage
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minCompletionPercentage = _minCompletionPercentage;
+
+        emit MinCompletionPercentageUpdated(_minCompletionPercentage);
     }
 
     // =========================== Overrides ==============================
@@ -1297,4 +607,133 @@ contract CustomTalentLayerEscrow is
     {
         return ERC2771RecipientUpgradeable._msgData();
     }
+
+    // =========================== Private functions ==============================
+
+    /**
+     * @notice Validate a new service
+     * @param _profileId The TalentLayer ID of the user
+     * @param _platformId platform ID on which the Service was created
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
+    function _validateService(
+        uint256 _profileId,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) private view {
+        uint256 servicePostingFee = talentLayerPlatformIdContract
+            .getServicePostingFee(_platformId);
+        require(msg.value == servicePostingFee, "Non-matching funds");
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        address platformSigner = talentLayerPlatformIdContract.getSigner(
+            _platformId
+        );
+        if (platformSigner != address(0)) {
+            bytes32 messageHash = keccak256(
+                abi.encodePacked(
+                    "createService",
+                    _profileId,
+                    ";",
+                    serviceNonce[_profileId],
+                    _dataUri
+                )
+            );
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
+        }
+    }
+
+    /**
+     * @notice Validate a new proposal
+     * @param _profileId The TalentLayer ID of the user
+     * @param _serviceId The service linked to the new proposal
+     * @param _rateToken the token choose for the payment
+     * @param _rateAmount the amount of token chosen
+     * @param _platformId platform ID on which the Proposal was created
+     * @param _dataUri token Id to IPFS URI mapping
+     * @param _signature platform signature to allow the operation
+     */
+    function _validateProposal(
+        uint256 _profileId,
+        uint256 _serviceId,
+        address _rateToken,
+        uint256 _rateAmount,
+        uint256 _platformId,
+        string calldata _dataUri,
+        bytes calldata _signature
+    ) private view {
+        require(
+            allowedTokenList[_rateToken].isWhitelisted,
+            "Token not allowed"
+        );
+        uint256 proposalPostingFee = talentLayerPlatformIdContract
+            .getProposalPostingFee(_platformId);
+        require(msg.value == proposalPostingFee, "Non-matching funds");
+        require(
+            _rateAmount >=
+                allowedTokenList[_rateToken].minimumTransactionAmount,
+            "Amount too low"
+        );
+
+        Service storage service = services[_serviceId];
+        require(service.status == Status.Opened, "Service not opened");
+        require(service.ownerId != 0, "Service not exist");
+        require(
+            proposals[_serviceId][_profileId].ownerId != _profileId,
+            "proposal already exist"
+        );
+
+        require(
+            service.ownerId != _profileId,
+            "can't create for your own service"
+        );
+        require(bytes(_dataUri).length == 46, "Invalid cid");
+
+        address platformSigner = talentLayerPlatformIdContract.getSigner(
+            _platformId
+        );
+        if (platformSigner != address(0)) {
+            bytes32 messageHash = keccak256(
+                abi.encodePacked(
+                    "createProposal",
+                    _profileId,
+                    ";",
+                    _serviceId,
+                    _dataUri
+                )
+            );
+            _validatePlatformSignature(_signature, messageHash, platformSigner);
+        }
+    }
+
+    /**
+     * @notice Validate the platform ECDSA signature for a given message hash operation
+     * @param _signature platform signature to allow the operation
+     * @param _messageHash The hash of a generated message corresponding to the operation
+     * @param _platformSigner The address defined by the platform as signer
+     */
+    function _validatePlatformSignature(
+        bytes calldata _signature,
+        bytes32 _messageHash,
+        address _platformSigner
+    ) private pure {
+        bytes32 ethMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(
+            _messageHash
+        );
+        address signer = ECDSAUpgradeable.recover(ethMessageHash, _signature);
+        require(_platformSigner == signer, "invalid signature");
+    }
+
+    // =========================== Internal functions ==============================
+
+    /**
+     * @notice Function that revert when `_msgSender()` is not authorized to upgrade the contract. Called by
+     * {upgradeTo} and {upgradeToAndCall}.
+     * @param newImplementation address of the new contract implementation
+     */
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

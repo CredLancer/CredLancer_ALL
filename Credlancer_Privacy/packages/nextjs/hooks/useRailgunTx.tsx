@@ -1,12 +1,12 @@
 import { useState } from "react";
 import useShieldPrivateKey from "./useShieldPrivateKey";
 import { populateShield, populateShieldBaseToken } from "@railgun-community/quickstart";
-import { NETWORK_CONFIG, RailgunERC20Amount, RailgunERC20AmountRecipient } from "@railgun-community/shared-models";
-import { ethers, parseUnits } from "ethers";
+import { ethers } from "ethers";
 import { useAccount, useWalletClient } from "wagmi";
 import { useNetwork } from "wagmi";
 import { ethAddress } from "~~/utils/constants";
 import { getNetwork } from "~~/utils/networks";
+// import { NETWORK_CONFIG, RailgunERC20Amount } from "@railgun-community/shared-models";
 
 const useRailgunTx = () => {
   const { data: signer } = useWalletClient();
@@ -50,7 +50,7 @@ const useRailgunTx = () => {
 
     const wrappedERC20Amount: RailgunERC20Amount = {
       tokenAddress: wethAddress, // wETH
-      amount: parseUnits(tokenAmount!, tokenDecimals), // hexadecimal amount
+      amount: ethers.utils.parseUnits(tokenAmount!, tokenDecimals).toBigInt(),
     };
 
     const { transaction } = await populateShieldBaseToken(network, recipient, shieldPrivateKey, wrappedERC20Amount);

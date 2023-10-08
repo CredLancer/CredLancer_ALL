@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { MintTalentLayerId } from "../MintTalentLayerId";
+import { CreateRailgunWallet } from "../railgun-wallet/CreateRailgunWallet";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { QRCodeSVG } from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { useDisconnect, useSwitchNetwork } from "wagmi";
+import { goerli } from "viem/chains";
+import { useAccount, useDisconnect, useSwitchNetwork } from "wagmi";
 import {
   ArrowLeftOnRectangleIcon,
   ArrowTopRightOnSquareIcon,
@@ -13,7 +16,9 @@ import {
   QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import { Address, Balance, BlockieAvatar } from "~~/components/scaffold-eth";
+import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { useAutoConnect, useNetworkColor } from "~~/hooks/scaffold-eth";
+import { useTalentLayerIdIds, useTalentLayerIdProfiles } from "~~/utils/generated";
 import { getBlockExplorerAddressLink, getTargetNetwork } from "~~/utils/scaffold-eth";
 
 /**
@@ -26,6 +31,21 @@ export const RainbowKitCustomConnectButton = () => {
   const { disconnect } = useDisconnect();
   const { switchNetwork } = useSwitchNetwork();
   const [addressCopied, setAddressCopied] = useState(false);
+
+  const { address } = useAccount();
+  const { data: talentLayerId } = useTalentLayerIdIds({
+    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
+    chainId: goerli.id,
+    args: [address!],
+    enabled: address !== undefined,
+  });
+  const { data: profile } = useTalentLayerIdProfiles({
+    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
+    chainId: goerli.id,
+    args: [talentLayerId!],
+    enabled: address !== undefined && talentLayerId !== undefined,
+  });
+  const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
 
   return (
     <ConnectButton.Custom>
@@ -97,13 +117,28 @@ export const RainbowKitCustomConnectButton = () => {
                       className="btn btn-secondary btn-sm pl-0 pr-2 shadow-md dropdown-toggle gap-0 !h-auto"
                     >
                       <BlockieAvatar address={account.address} size={24} ensImage={account.ensAvatar} />
-                      <span className="ml-2 mr-1">{account.displayName}</span>
+                      <span className="ml-2 mr-1">{handle || account.displayName}</span>
                       <ChevronDownIcon className="h-6 w-4 ml-2 sm:ml-0" />
                     </label>
                     <ul
                       tabIndex={0}
                       className="dropdown-content menu z-[2] p-2 mt-2 shadow-center shadow-accent bg-base-200 rounded-box gap-1"
                     >
+                      {handle && (
+                        <li className="border-b pb-2">
+                          <div className="btn-sm !rounded-xl hover:cursor-text flex gap-3 py-3">
+                            <span className=" whitespace-nowrap">{handle}</span>
+                          </div>
+                        </li>
+                      )}
+                      {!handle && (
+                        <li>
+                          <MintTalentLayerId />
+                        </li>
+                      )}
+                      <li>
+                        <CreateRailgunWallet />
+                      </li>
                       <li>
                         {addressCopied ? (
                           <div className="btn-sm !rounded-xl flex gap-3 py-3">
