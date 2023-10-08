@@ -4,7 +4,7 @@ import {Header} from "./layout";
 import {connectWalletPlugin, walletAccount, walletConnected} from "../api";
 import CustomButton from "./customButton";
 import {useStore} from "../context";
-import WalletDropDowm from "./WalletDropDowm";
+import WalletDropDowm from "./WalletDropDown";
 
 export default function CustomHeader() {
     const [state, dispatch] = useStore();

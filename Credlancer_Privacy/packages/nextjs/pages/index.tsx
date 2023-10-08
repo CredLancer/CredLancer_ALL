@@ -1,8 +1,8 @@
+import { Dispatch, SetStateAction, useState } from "react";
 import { NetworkName, RailgunWalletInfo } from "@railgun-community/shared-models";
 import { createRailgunWallet, getRandomBytes } from "@railgun-community/wallet";
 import { Mnemonic, randomBytes } from "ethers";
 import type { NextPage } from "next";
-import { Dispatch, SetStateAction, useState } from "react";
 import { goerli } from "viem/chains";
 import { useAccount } from "wagmi";
 import { MetaHeader } from "~~/components/MetaHeader";
@@ -20,10 +20,7 @@ import {
 import { Input } from "~~/components/ui/input";
 import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
-import {
-  useTalentLayerIdIds,
-  useTalentLayerIdProfiles
-} from "~~/utils/generated";
+import { useTalentLayerIdIds, useTalentLayerIdProfiles } from "~~/utils/generated";
 import { hashPasswordString } from "~~/utils/hash-service";
 
 const RAILGUN_WALLET_LOCAL_STORAGE_KEY = "railgunWalletId";
@@ -51,7 +48,7 @@ const Home: NextPage = () => {
   const { data: profile } = useTalentLayerIdProfiles({
     address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
     chainId: goerli.id,
-    args: [talentLayerId! + 1n],
+    args: [talentLayerId!],
     enabled: address !== undefined && talentLayerId !== undefined,
   });
   const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
