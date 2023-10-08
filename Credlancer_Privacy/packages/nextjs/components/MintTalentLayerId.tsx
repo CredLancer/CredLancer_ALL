@@ -24,7 +24,7 @@ export function MintTalentLayerId() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Mint</Button>
+        <Button>Create new CredLancer profile</Button>
       </DialogTrigger>
       <DialogContent>
         <div>
