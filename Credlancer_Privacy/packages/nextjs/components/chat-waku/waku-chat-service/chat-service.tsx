@@ -1,17 +1,27 @@
-import { DecodedMessage, RelayNode } from "@waku/sdk";
+import {
+    DecodedMessage,
+    Protocols,
+    RelayNode,
+    createEncoder,
+    createRelayNode,
+    waitForRemotePeer,
+} from "@waku/sdk";
 import { EncryptionHandler } from "./encryption-handler";
 import MessageHandler, { Message } from "./message-handler";
-import { initWaku, sendWakuMessage } from "./waku";
 import { Dispatch, SetStateAction } from "react";
+import { Logger } from "~~/utils/logger";
+import { PrivateMessage } from "./proto/compiled";
 
 class ChatService {
     private messages: Message[] = [];
     public waku: RelayNode | null;
     private encryptionHandler: EncryptionHandler;
+    private contentTopic: string;
 
     // constructor(encryptionKey: string, waku: RelayNode) {
-    constructor(encryptionKey: string) {
+    constructor(encryptionKey: string, contentTopic: string) {
         this.encryptionHandler = new EncryptionHandler(encryptionKey);
+        this.contentTopic = contentTopic;
         this.waku = null;
         this.messages = [];
         this.onMessage = this.onMessage.bind(this);
@@ -19,29 +29,62 @@ class ChatService {
     }
 
     public async initWaku() {
-        this.waku = await initWaku();
+        this.waku = await this.initWakuNode();
         return this.waku;
     }
 
+    private async initWakuNode(): Promise<RelayNode> {
+        const waku = await createRelayNode({ defaultBootstrap: true });
+        Logger.debug("created waku node");
+        await waku.start();
+
+        Logger.debug("started waku node");
+
+        await waitForRemotePeer(waku, [Protocols.Relay]);
+
+        Logger.debug("found remote peer", waku);
+        return waku;
+    }
+
     public sendMessage(text: string, sender: string): void {
-        if (!this.waku) text = text + " no waku";
+        if (!this.waku) {
+            text = text + " no waku";
+            return;
+        }
         const formattedMessage = MessageHandler.createMessage(text, sender);
         const encryptedMessage = this.encryptionHandler.encryptMessage(
             formattedMessage.text
         );
         const message: Message = {
             text: encryptedMessage,
-            sender: formattedMessage.sender,
+            senderId: formattedMessage.senderId,
             timestamp: formattedMessage.timestamp,
         };
         // this.sendMessage;
         this.messages.push(message);
         if (!this.waku) return;
-        sendWakuMessage(this.waku, message, (res) => {
+        this.sendWakuMessage(this.waku, message, (res) => {
             if (res) {
-                console.log("callback called with", res);
+                Logger.debug("callback called with", res);
             }
         });
+    }
+
+    async sendWakuMessage(
+        waku: RelayNode,
+        message: Message,
+        callback: (res: boolean) => void
+    ) {
+        const payload = PrivateMessage.create(message);
+        const buffer = PrivateMessage.encode(payload).finish();
+        const encoder = createEncoder({
+            contentTopic: this.contentTopic,
+            ephemeral: true,
+        });
+
+        const res = await waku.relay.send(encoder, { payload: buffer });
+        Logger.debug("Message sent", res);
+        callback(Boolean(res.recipients.length));
     }
 
     public onMessage(
@@ -50,14 +93,12 @@ class ChatService {
         wakuMsg: DecodedMessage
     ) {
         try {
-            const payload = new TextDecoder().decode(wakuMsg.payload);
-            const obj = JSON.parse(payload) as Message;
-            console.log("got stuff", obj.text);
-            this.messages.push(obj);
-            console.log(this.getMessages());
+            const payload = PrivateMessage.decode(wakuMsg.payload);
+            Logger.debug("got stuff", payload.text);
+            this.messages.push(payload);
             setter(this.getMessages());
         } catch (e) {
-            console.log(e);
+            Logger.error("catch onMessage", e);
         }
     }
 
@@ -71,7 +112,7 @@ class ChatService {
         for (const message of this.messages) {
             descryptedMessages.push({
                 timestamp: message.timestamp,
-                sender: message.sender,
+                senderId: message.senderId,
                 text: this.encryptionHandler.decryptMessage(message.text),
             });
         }

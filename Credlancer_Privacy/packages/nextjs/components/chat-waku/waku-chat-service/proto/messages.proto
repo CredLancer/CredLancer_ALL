@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message PrivateMessage {
+    string text = 1;
+    string senderId = 2;
+    string timestamp = 3;
+}

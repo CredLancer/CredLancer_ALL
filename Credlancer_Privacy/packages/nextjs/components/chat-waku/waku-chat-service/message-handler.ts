@@ -1,6 +1,6 @@
 export interface Message {
     text: string;
-    sender: string;
+    senderId: string;
     timestamp: string;
 }
 
@@ -17,12 +17,12 @@ class MessageHandler {
         return timestamp;
     }
 
-    public static createMessage(text: string, sender: string): Message {
+    public static createMessage(text: string, senderId: string): Message {
         const trimmedText = this.trimMessage(text);
         const timestamp = this.formatTimestamp();
         return {
             text: trimmedText,
-            sender,
+            senderId,
             timestamp,
         };
     }
