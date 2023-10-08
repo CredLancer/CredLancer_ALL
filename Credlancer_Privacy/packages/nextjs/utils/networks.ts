@@ -99,5 +99,5 @@ export const buildBaseToken = (baseToken: BaseToken, chainId: number) => {
 };
 
 export const getNetwork = (chainId: number | undefined) => {
-  return networks[chainId || 1] || networks[1];
+  return networks[chainId || 1];
 };

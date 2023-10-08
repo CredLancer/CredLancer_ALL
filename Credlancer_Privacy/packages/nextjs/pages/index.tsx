@@ -1,9 +1,12 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import { NetworkName } from "@railgun-community/shared-models";
-import { createRailgunWallet } from "@railgun-community/wallet";
+import { NetworkName, RailgunWalletInfo } from "@railgun-community/shared-models";
+import { createRailgunWallet, getRandomBytes } from "@railgun-community/wallet";
 import { Mnemonic, randomBytes } from "ethers";
 import type { NextPage } from "next";
+import { Dispatch, SetStateAction, useState } from "react";
+import { goerli } from "viem/chains";
+import { useAccount } from "wagmi";
 import { MetaHeader } from "~~/components/MetaHeader";
+import { MintTalentLayerId } from "~~/components/MintTalentLayerId";
 import { Button } from "~~/components/ui/button";
 import {
   Dialog,
@@ -14,9 +17,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~~/components/ui/dialog";
+import { Input } from "~~/components/ui/input";
+import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { useRailgunProvider } from "~~/hooks/useRailgunProvider";
+import {
+  useTalentLayerIdIds,
+  useTalentLayerIdProfiles
+} from "~~/utils/generated";
+import { hashPasswordString } from "~~/utils/hash-service";
 
-const ENCRYPTION_KEY = "0101010101010101010101010101010101010101010101010101010101010101";
 const RAILGUN_WALLET_LOCAL_STORAGE_KEY = "railgunWalletId";
 
 // Block numbers for each chain when wallet was first created.
@@ -29,8 +38,27 @@ const creationBlockNumberMap: Record<string, number> = {
 const Home: NextPage = () => {
   const [step, setStep] = useState(0);
   const [mnemonic, setMnemonic] = useState("");
+  const [walletConfig, setWalletConfig] = useState<RailgunWalletInfo>();
+  const [isOpen, setIsOpen] = useState(false);
+  const { address } = useAccount();
+
+  const { data: talentLayerId } = useTalentLayerIdIds({
+    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
+    chainId: goerli.id,
+    args: [address!],
+    enabled: address !== undefined,
+  });
+  const { data: profile } = useTalentLayerIdProfiles({
+    address: CONTRACT_ADDRESSES[goerli.id].TALENT_LAYER_ID,
+    chainId: goerli.id,
+    args: [talentLayerId! + 1n],
+    enabled: address !== undefined && talentLayerId !== undefined,
+  });
+  const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
 
   const { isProviderLoaded } = useRailgunProvider();
+
+  console.log({ walletConfig, profile });
 
   return (
     <>
@@ -41,10 +69,17 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">CredLancer</span>
           </h1>
         </div>
+        {handle !== undefined && handle !== "" ? (
+          <p className="pb-4">Your talent layer handle is {handle}</p>
+        ) : (
+          <MintTalentLayerId />
+        )}
         <Dialog
           onOpenChange={open => {
             if (!open) setStep(0);
+            setIsOpen(open);
           }}
+          open={isOpen}
         >
           <DialogTrigger asChild>
             <Button disabled={!isProviderLoaded}>
@@ -54,7 +89,8 @@ const Home: NextPage = () => {
           <DialogContent>
             {step === 0 && <StepOne setStep={setStep} />}
             {step === 1 && <StepTwo setMnemonic={setMnemonic} setStep={setStep} />}
-            {step === 2 && <StepThree mnemonic={mnemonic} setStep={setStep} />}
+            {step === 2 && <StepThree setWalletConfig={setWalletConfig} mnemonic={mnemonic} setStep={setStep} />}
+            {step === 3 && <StepFour setIsOpen={setIsOpen} walletConfig={walletConfig} />}
           </DialogContent>
         </Dialog>
       </div>
@@ -108,11 +144,38 @@ function StepTwo({
 }
 
 // railgunWalletInfo contains other useful information, like the wallet's RAILGUN address, i.e. '0zk987...654'
-function StepThree({ mnemonic, setStep }: { mnemonic: string; setStep: Dispatch<SetStateAction<number>> }) {
+function StepThree({
+  mnemonic,
+  setStep,
+  setWalletConfig,
+}: {
+  setWalletConfig: Dispatch<SetStateAction<RailgunWalletInfo | undefined>>;
+  mnemonic: string;
+  setStep: Dispatch<SetStateAction<number>>;
+}) {
+  const [password, setPassword] = useState("");
+
+  const setEncryptionKeyFromPassword = async (password: string): Promise<string> => {
+    const salt = getRandomBytes(16); // Generate salt
+    const [encryptionKey, hashPasswordStored] = await Promise.all([
+      hashPasswordString(password, salt, 100000), // Generate hash from password and salt
+      hashPasswordString(password, salt, 1000000), // Generate hash for stored password. Use more iterations for the stored value.
+    ]);
+
+    localStorage.setItem("hashPasswordStored", hashPasswordStored);
+    localStorage.setItem("salt", salt);
+
+    return encryptionKey;
+  };
+
   const createWallet = async () => {
     console.log("Creating wallet...");
-    const railgunWalletInfo = await createRailgunWallet(ENCRYPTION_KEY, mnemonic, creationBlockNumberMap);
+
+    const encryptionKey = await setEncryptionKeyFromPassword(password);
+
+    const railgunWalletInfo = await createRailgunWallet(encryptionKey, mnemonic, creationBlockNumberMap);
     const id = railgunWalletInfo.id;
+    setWalletConfig(railgunWalletInfo);
 
     console.log("Created railgun wallet", { railgunWalletInfo });
 
@@ -124,11 +187,40 @@ function StepThree({ mnemonic, setStep }: { mnemonic: string; setStep: Dispatch<
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Copy your mnemonic</DialogTitle>
-        <DialogDescription>{mnemonic}</DialogDescription>
+        <DialogTitle>Set your password</DialogTitle>
+        <DialogDescription>
+          <p className="pb-4">Enter a password to encrypt your wallet</p>
+          <Input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        </DialogDescription>
       </DialogHeader>
       <DialogFooter>
         <Button onClick={() => createWallet()}>Continue</Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+function StepFour({
+  setIsOpen,
+  walletConfig,
+}: {
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  walletConfig?: RailgunWalletInfo;
+}) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Copy your mnemonic</DialogTitle>
+        <DialogDescription>{JSON.stringify(walletConfig, null, 2)}</DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button
+          onClick={() => {
+            setIsOpen(false);
+          }}
+        >
+          Continue
+        </Button>
       </DialogFooter>
     </>
   );

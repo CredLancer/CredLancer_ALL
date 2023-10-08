@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useEthersProvider } from "./useEthersProviders";
 import { setProviderForNetwork } from "@railgun-community/quickstart";
-import { useNetwork } from "wagmi";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import { getNetwork, networks } from "~~/utils/networks";
 import { loadProviders } from "~~/utils/railgun";

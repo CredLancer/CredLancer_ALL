@@ -1,5 +1,6 @@
 import TalentLayerID from "./abi/TalentLayerID.json";
 import { defineConfig } from "@wagmi/cli";
+import { react } from "@wagmi/cli/plugins";
 import { Abi } from "viem";
 
 export default defineConfig({
@@ -10,5 +11,5 @@ export default defineConfig({
       abi: TalentLayerID.abi as Abi,
     },
   ],
-  plugins: [],
+  plugins: [react()],
 });
