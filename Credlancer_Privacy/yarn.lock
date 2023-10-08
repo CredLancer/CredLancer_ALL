@@ -9789,7 +9789,7 @@ ethers@^6.4.0:
     tslib "2.4.0"
     ws "8.5.0"
 
-"ethers@github:Railgun-Community/ethers.js", "ethers@github:Railgun-Community/ethers.js#v6.7.6":
+"ethers@github:Railgun-Community/ethers.js#v6.7.6":
   version "6.7.6"
   resolved "https://codeload.github.com/Railgun-Community/ethers.js/tar.gz/8eee17db07ce57bcc453855d6aa9b945eb47dfa4"
   dependencies:
