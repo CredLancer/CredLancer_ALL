@@ -78,3 +78,5 @@ export const UNSTOPPABLE_DOMAIN_SUFFIXES = [
   ".x",
   ".zil",
 ];
+
+export const SUBGRAPH_URI = "https://api.thegraph.com/subgraphs/name/talentlayer/talent-layer-mumbai";

@@ -17,6 +17,7 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import "~~/styles/globals.css";
 import { initialize } from "~~/utils/railgun";
+import { SUBGRAPH_URI } from "~~/utils/constants";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   useMemo(initialize, []);
@@ -28,9 +29,8 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const { isDarkMode } = useDarkMode();
 
-  const subgraphUri = "https://api.thegraph.com/subgraphs/name/talentlayer/talent-layer-mumbai";
   const apolloClient = new ApolloClient({
-    uri: subgraphUri,
+    uri: SUBGRAPH_URI,
     cache: new InMemoryCache(),
   });
 
