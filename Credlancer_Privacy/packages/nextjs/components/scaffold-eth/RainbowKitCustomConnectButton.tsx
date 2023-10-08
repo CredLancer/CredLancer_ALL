@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { MintTalentLayerId } from "../MintTalentLayerId";
+import { CreateRailgunWallet } from "../railgun-wallet/CreateRailgunWallet";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { QRCodeSVG } from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
@@ -18,7 +20,6 @@ import { CONTRACT_ADDRESSES } from "~~/constants/address";
 import { useAutoConnect, useNetworkColor } from "~~/hooks/scaffold-eth";
 import { useTalentLayerIdIds, useTalentLayerIdProfiles } from "~~/utils/generated";
 import { getBlockExplorerAddressLink, getTargetNetwork } from "~~/utils/scaffold-eth";
-import { MintTalentLayerId } from "../MintTalentLayerId";
 
 /**
  * Custom Wagmi Connect Button (watch balance + custom design)
@@ -45,8 +46,6 @@ export const RainbowKitCustomConnectButton = () => {
     enabled: address !== undefined && talentLayerId !== undefined,
   });
   const [, /* id */ handle /* platformId */ /* dataUri */, ,] = profile || [];
-
-  console.log({ handle });
 
   return (
     <ConnectButton.Custom>
@@ -125,8 +124,22 @@ export const RainbowKitCustomConnectButton = () => {
                       tabIndex={0}
                       className="dropdown-content menu z-[2] p-2 mt-2 shadow-center shadow-accent bg-base-200 rounded-box gap-1"
                     >
+                      {handle && (
+                        <li className="border-b pb-2">
+                          <div className="btn-sm !rounded-xl hover:cursor-text flex gap-3 py-3">
+                            <span className=" whitespace-nowrap">{handle}</span>
+                          </div>
+                        </li>
+                      )}
+                      {!handle && (
+                        <li>
+                          <MintTalentLayerId />
+                        </li>
+                      )}
                       <li>
-                        {!handle && <MintTalentLayerId />}
+                        <CreateRailgunWallet />
+                      </li>
+                      <li>
                         {addressCopied ? (
                           <div className="btn-sm !rounded-xl flex gap-3 py-3">
                             <CheckCircleIcon
