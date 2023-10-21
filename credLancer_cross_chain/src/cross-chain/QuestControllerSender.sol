@@ -22,63 +22,7 @@ WETH9 public immutable weth;
         _unpause();
     }
 
-    function send(
-        address receiver,
-        Client.EVMTokenAmount[] memory tokensToSendDetails,
-        PayFeesIn payFeesIn
-    ) external {
-        uint256 length = tokensToSendDetails.length;
-        require(
-            length <= i_maxTokensLength,
-            "Maximum 5 different tokens can be sent per CCIP Message"
-        );
 
-        for (uint256 i = 0; i < length; ) {
-            IERC20(tokensToSendDetails[i].token).transferFrom(
-                msg.sender,
-                address(this),
-                tokensToSendDetails[i].amount
-            );
-            IERC20(tokensToSendDetails[i].token).approve(
-                i_router,
-                tokensToSendDetails[i].amount
-            );
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(receiver),
-            data: "",
-            tokenAmounts: tokensToSendDetails,
-            extraArgs: "",
-            feeToken: payFeesIn == PayFeesIn.LINK ? i_link : address(0)
-        });
-
-        uint256 fee = IRouterClient(i_router).getFee(
-            destinationChainSelector,
-            message
-        );
-
-        bytes32 messageId;
-
-        if (payFeesIn == PayFeesIn.LINK) {
-            // LinkTokenInterface(i_link).approve(i_router, fee);
-            messageId = IRouterClient(i_router).ccipSend(
-                destinationChainSelector,
-                message
-            );
-        } else {
-            messageId = IRouterClient(i_router).ccipSend{value: fee}(
-                destinationChainSelector,
-                message
-            );
-        }
-
-        emit MessageSent(messageId);
-    }
 
     function createQuest(
      
