@@ -55,7 +55,7 @@ contract QuestController is Ownable, Pausable, EIP712 ,CCIPReceiver{
     uint256 public totalQuests;
     uint256 public totalProposals;
     address public signer;
-    WETH9 public weth;
+    WETH9 public immutable weth;
     Credential public credential;
     OrganizationController public organizationController;
 
