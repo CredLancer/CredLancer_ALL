@@ -1,0 +1,18 @@
+{
+  "name": "hardhat-project",
+  "scripts": {
+    "build": "npx hardhat compile",
+    "test": "mpx hardhat test",
+    "coverage": "npx hardhat coverage",
+    "deploy": "npx hardhat run ./scripts/deploy.ts --network hyperspace"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "hardhat": "^2.12.6"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.1",
+    "dotenv": "^16.0.3",
+    "keccak256": "^1.0.6"
+  }
+}
