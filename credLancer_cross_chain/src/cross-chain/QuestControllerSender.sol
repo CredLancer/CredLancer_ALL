@@ -7,7 +7,7 @@ import "./CrossChainSender.sol";
 contract QuestControllerSender is  Pausable, CrossChainSender{
 WETH9 public immutable weth;
     constructor(
-       address router_, address link ,address payable weth_,address destQuest,uint64 destinationChainSelector_
+       address router_, address link ,address payable weth_, uint64 destinationChainSelector_
     )CrossChainSender (router_,link,destinationChainSelector_) {
          
         weth = WETH9(weth_);
