@@ -2,8 +2,11 @@ import {
   OrganizationController,
   QuestController,
   Credential,
+  IRouterClient,
+  WETH9
 } from "../typechain-types";
-import { ethers } from "hardhat";
+
+ import { ethers } from "hardhat";
 import { ethers as e, Signer } from "ethers";
 import { expect } from "chai";
 import { ZERO_ADDRESS } from "./helpers";
@@ -61,7 +64,10 @@ describe("Quest Controller Contract", function () {
   let wallet: e.Wallet;
   let organizationController: OrganizationController,
     questController: QuestController,
-    credentialContract: Credential;
+    credentialContract: Credential,
+    router:IRouterClient,
+    weth: WETH9;
+  
   let lastNonce = 0;
 
   this.beforeAll(async function () {
@@ -78,14 +84,18 @@ describe("Quest Controller Contract", function () {
     await organizationController.deployed();
 
     // deploy the credential contract
+    const Weth = await ethers.getContractFactory("WETH9");
+    weth = await Weth.deploy();
     const Credential = await ethers.getContractFactory("Credential");
     credentialContract = await Credential.deploy();
     await credentialContract.deployed();
 
     const QuestController = await ethers.getContractFactory("QuestController");
     questController = await QuestController.deploy(
-      organizationController.address,
-      credentialContract.address
+       organizationController.address,
+      credentialContract.address,
+     "0xE561d5E02207fb5eB32cca20a699E0d8919a1476",
+      weth.address
     );
     await questController.deployed();
 

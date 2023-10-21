@@ -4,7 +4,7 @@
     "build": "npx hardhat compile",
     "test": "mpx hardhat test",
     "coverage": "npx hardhat coverage",
-    "deploy": "npx hardhat run ./scripts/deploy.ts --network hyperspace"
+    "deploy": "npx hardhat run ./hh_scripts/deploy.ts --network hyperspace"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.1",
