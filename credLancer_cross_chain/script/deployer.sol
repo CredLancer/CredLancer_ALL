@@ -26,17 +26,8 @@ contract Deployer is Script, Helper ,SigUtils{
            ( address sourceRouter, address linkToken, address weth_, ) = getConfigFromNetwork(
             source
         );
-        //  IERC20(linkToken).transfer(sender,fees);
         (, , , uint64 destinationChainId) = getConfigFromNetwork(destination);
-                /**    address router_, address link ,address payable weth_, uint64 destinationChainSelector_ */
-
-    sender = new  QuestControllerSender(sourceRouter, linkToken,payable(weth_),destinationChainId);
-    // IERC20(linkToken).approve(address(sender), 1 ether);
-
- 
-    //  send some link token to the contract to be used to pay fees
-    //  IERC20(linkToken).transfer(address(sender),30 ether);
-
+         sender = new  QuestControllerSender(sourceRouter, linkToken,payable(weth_),destinationChainId);
         console.log(
             " your contract is deployed at address: ",address(sender)  );
         

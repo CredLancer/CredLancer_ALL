@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/security/Pausable.sol";
+ import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.0/token/ERC20/IERC20.sol";
+
 import "../shared/WETH9.sol";
 import "./CrossChainSender.sol";
  
@@ -59,7 +61,7 @@ WETH9 public immutable weth;
        
 
         if (payFeesInLink) {
-            // LinkTokenInterface(i_link).approve(i_router, fee);
+            IERC20 (i_link).approve(i_router, fee);
             messageId = IRouterClient(i_router).ccipSend(
                 destinationChainSelector,
                 message

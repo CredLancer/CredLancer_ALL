@@ -24,8 +24,8 @@ contract CrossChainSender is Withdraw {
         i_router = router;
         i_link = link;
         i_maxTokensLength = 5;
-        IERC20(i_link).approve(i_router, type(uint256).max);
         destinationChainSelector = destinationChainSelector_;
+
     }
     function linkBalance (address account) public view returns (uint256) {
         return IERC20(i_link).balanceOf(account);
