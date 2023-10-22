@@ -1,0 +1,21 @@
+
+coverage
+coverage.json
+typechain
+ 
+# Foundry
+cache/
+out/
+
+# JS
+node_modules/
+
+#Hardhat files
+cache_hardhat/
+artifacts/
+
+#Hardhat plugin files
+typechain-types/
+
+
+*.env
