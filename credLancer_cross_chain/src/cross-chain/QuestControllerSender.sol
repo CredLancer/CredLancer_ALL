@@ -25,7 +25,6 @@ WETH9 public immutable weth;
 
 
     function createQuest(
-     
         bytes calldata questCID,
         uint256 reward,
         uint256 orgId,
@@ -33,8 +32,8 @@ WETH9 public immutable weth;
         bytes calldata signature,
         uint256 nonce,
         address receiver,
-        PayFeesIn payFeesIn
-    ) public payable  {
+        bool payFeesInLink
+    ) public payable  returns ( bytes32 messageId){
 //_createQuest(questCID, reward, orgId, deadline, signature, nonce,msg.sender,msg.value);
             uint256 amount= msg.value;
             weth.deposit{value:amount}();
@@ -49,7 +48,7 @@ WETH9 public immutable weth;
             data: abi.encode(  questCID,reward,orgId,deadline,signature,nonce),
             tokenAmounts: tokenAmounts,
             extraArgs: "",
-            feeToken: payFeesIn == PayFeesIn.LINK ? i_link : address(0)
+            feeToken: payFeesInLink ? i_link : address(0)
         });
 
         uint256 fee = IRouterClient(i_router).getFee(
@@ -57,9 +56,9 @@ WETH9 public immutable weth;
             message
         );
 
-        bytes32 messageId;
+       
 
-        if (payFeesIn == PayFeesIn.LINK) {
+        if (payFeesInLink) {
             // LinkTokenInterface(i_link).approve(i_router, fee);
             messageId = IRouterClient(i_router).ccipSend(
                 destinationChainSelector,

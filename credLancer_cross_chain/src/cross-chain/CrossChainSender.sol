@@ -20,18 +20,6 @@ contract CrossChainSender is Withdraw {
     address immutable i_link;
     uint16 immutable i_maxTokensLength;
  
-
-
-
-
-    enum PayFeesIn {
-        Native,
-        LINK
-    }
-
-
-
-
     constructor(address router, address link,uint64 destinationChainSelector_) {
         i_router = router;
         i_link = link;
