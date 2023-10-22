@@ -9,7 +9,7 @@ contract SigUtils is EIP712 {
 
    
     // computes the hash of a permit
-    function _getStructHash( bytes memory questCID,
+    function _getCreateRequstStructHash( bytes memory questCID,
         uint256 reward,
         uint256 orgId,
         uint256 deadline,
@@ -30,6 +30,29 @@ contract SigUtils is EIP712 {
                     keccak256(questCID),
                     reward,
                     deadline,
+                    nonce
+                )
+            )
+        );
+    }
+    function _getCreateOrgStructHash(   string memory name,
+        bytes memory imageCID,
+        uint256 nonce)
+        internal
+        view
+        returns ( bytes32 digest)
+    {
+      
+
+           digest  =  _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "CreateOrganization(address admin,string name,bytes imageCID,uint256 nonce)"
+                    ),
+                    msg.sender,
+                    keccak256(bytes(name)),
+                    keccak256(imageCID),
                     nonce
                 )
             )

@@ -62,7 +62,8 @@ contract Deployer is Script, Helper ,SigUtils{
     }
 
 
-      function createuesst(
+ function createQuest(
+            SupportedNetworks source,
            uint256 nonce,
            address receiver,
            address sender
@@ -71,15 +72,14 @@ contract Deployer is Script, Helper ,SigUtils{
 
        
         vm.startBroadcast( vm.envUint("PRIVATE_KEY"));
-        //    ( address , address linkToken, , ) = getConfigFromNetwork(
-        //     source
-        // );
-        // //  IERC20(linkToken).transfer(sender,fees);
-        // (, , , uint64 destinationChainId) = getConfigFromNetwork(destination);
-        //          /**    address router_, address link ,address payable weth_, uint64 destinationChainSelector_ */
+        {
 
- 
-        uint256 deadline = block.timestamp + 30 days;
+         ( , address linkToken, , ) = getConfigFromNetwork(
+            source
+        );
+            IERC20(linkToken).transfer(sender,1 ether);
+        }
+       { uint256 deadline = block.timestamp + 300 days;
         // convert questCID to bytes
         bytes memory questCID = abi.encodePacked('0x0170122039febd81cc2eddc5bd20afeb13d86e6e511b40468296f10562e4b6c3fe74656b');
         uint256 reward = 1000000000;
@@ -88,19 +88,54 @@ contract Deployer is Script, Helper ,SigUtils{
          bytes memory  signature;
         { 
             // bock scope to avoid stack too deep error
-             bytes32 digest = _getStructHash(questCID,reward,orgId,deadline,nonce);
+             bytes32 digest = _getCreateRequstStructHash(questCID,reward,orgId,deadline,nonce);
 
             (uint8 v, bytes32 r, bytes32 s) = vm.sign( vm.envUint("PRIVATE_KEY"), digest);
 
            signature  = abi.encodePacked(r, s, v);}
    
+            
 
-  
     
-           QuestControllerSender(payable(sender))
-           .createQuest { value: 1 }(questCID,reward,orgId,deadline,signature,nonce,receiver,false);     
+        //    QuestControllerSender(payable(sender))
+        //    .createQuest { value: 100000 }(questCID,reward,orgId,deadline,signature,nonce,receiver,true);     
           
+    }
+        // console.log(
+        //     "You can now monitor the status of your Chainlink CCIP Message via https://ccip.chain.link using CCIP Message ID: "
+        // );
+        // console.logBytes32(messageId);
 
+        vm.stopBroadcast();
+    }
+
+
+function creatOrg(
+                      address org
+      
+     )external  {
+
+       
+        vm.startBroadcast( vm.envUint("PRIVATE_KEY"));
+     
+       {
+        string memory name = "Org 1";
+        bytes memory imageCID = abi.encode("0x01701220c3c4733ec8affd06cf9e9ff50ffc6bcd2ec85a6170004bb709669c31de94391a");
+        uint256 nonce =0;
+         bytes memory  signature;
+        { 
+            // bock scope to avoid stack too deep error
+            bytes32 digest = _getCreateOrgStructHash(name, imageCID, nonce);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign( vm.envUint("PRIVATE_KEY"), digest);
+
+           signature  = abi.encodePacked(r, s, v);}
+   
+            
+
+    
+           OrganizationController(org)
+           .createOrganization(
+        name, imageCID,signature, nonce);
         // console.log(
         //     "You can now monitor the status of your Chainlink CCIP Message via https://ccip.chain.link using CCIP Message ID: "
         // );
@@ -110,3 +145,4 @@ contract Deployer is Script, Helper ,SigUtils{
     }
 }
     
+}
