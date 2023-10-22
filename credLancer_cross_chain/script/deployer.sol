@@ -53,8 +53,16 @@ contract Deployer is Script, Helper {
 
 
         uint256 senderPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(senderPrivateKey);
-         
+         vm.startBroadcast(senderPrivateKey);
+         OrganizationController orgController = new OrganizationController();
+         Credential credential = new Credential();
+         (address sourceRouter, address linkToken, , ) = getConfigFromNetwork(
+            source
+           );
+        (address desinationRouter, ,address weth_ , ) = getConfigFromNetwork(destination);
+
+        receiver = new QuestController(orgController, credential,sourceRouter,payable(weth_));
+        console.log( " your contract is deployed at address: ",address(receiver)  );
  
         vm.stopBroadcast();
 
