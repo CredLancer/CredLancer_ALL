@@ -2,10 +2,8 @@
 pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-
-import "./Credential.sol";
+ 
+import "./identity/ICredential.sol";
 import "./shared/WETH9.sol";
 import "./OrganizationController.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -56,7 +54,7 @@ contract QuestController is Ownable, Pausable, EIP712 ,CCIPReceiver{
     uint256 public totalProposals;
     address public signer;
     WETH9 public immutable weth;
-    Credential public credential;
+    ICredential public credential;
     OrganizationController public organizationController;
 
     event QuestCreated(
@@ -113,7 +111,7 @@ contract QuestController is Ownable, Pausable, EIP712 ,CCIPReceiver{
 
     constructor(
         OrganizationController _organizationController,
-        Credential _credential,address router, address payable weth_
+        ICredential _credential,address router, address payable weth_
     ) EIP712("Quest Controller", "1") CCIPReceiver(router){
         organizationController = _organizationController;
         credential = _credential;
