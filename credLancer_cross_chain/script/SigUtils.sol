@@ -9,7 +9,7 @@ contract SigUtils is EIP712 {
 
    
     // computes the hash of a permit
-    function _getStructHash( bytes calldata questCID,
+    function _getStructHash( bytes memory questCID,
         uint256 reward,
         uint256 orgId,
         uint256 deadline,
