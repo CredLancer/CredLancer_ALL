@@ -8,6 +8,7 @@ import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.0/token/ERC20/IERC20.sol";
  import {OrganizationController} from "../src/OrganizationController.sol";
+ import {ICredential} from "../src/identity/ICredential.sol";
  import {Credential} from "../src/Credential.sol";
  import {QuestController} from "../src/QuestController.sol";
  import {QuestControllerSender} from "../src/cross-chain/QuestControllerSender.sol";
@@ -53,7 +54,7 @@ contract Deployer is Script, Helper ,SigUtils{
            );
         (, ,address weth_ , ) = getConfigFromNetwork(destination);
 
-        receiver = new QuestController(orgController, credential,sourceRouter,payable(weth_));
+        receiver = new QuestController(orgController, ICredential(address(credential)),sourceRouter,payable(weth_));
         console.log( " your contract is deployed at address: ",address(receiver)  );
  
         vm.stopBroadcast();
